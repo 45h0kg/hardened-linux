@@ -1,0 +1,17 @@
+## Base configuration. augenrules concatenates rules.d/*.rules in lexical
+## order into /etc/audit/audit.rules, which auditd loads at boot.
+
+# Start from an empty rule set.
+-D
+# Kernel buffer for events waiting to be read by auditd.
+-b 8192
+# If the kernel cannot record an event (backlog full, auditd dead), print a
+# message (1). 2 would panic the machine, which some accreditation schemes
+# require: an unaudited system must stop. Panic is a denial-of-service lever
+# for anyone who can generate events quickly, so it is not used here.
+-f 1
+# Wait up to 60 s for space in the backlog before dropping an event.
+--backlog_wait_time 60000
+# Ignore errors from rules referring to paths or syscalls that do not exist
+# on this architecture, so one file works on x86_64 and aarch64.
+-i

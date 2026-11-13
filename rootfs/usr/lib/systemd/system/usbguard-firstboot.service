@@ -1,0 +1,15 @@
+# Generate the USBGuard allow-list from the devices present on first boot,
+# before the daemon starts enforcing. Runs once: it does nothing when
+# rules.conf already has content.
+[Unit]
+Description=Generate initial USBGuard policy from present devices
+Before=usbguard.service
+ConditionFileNotEmpty=!/etc/usbguard/rules.conf
+
+[Service]
+Type=oneshot
+UMask=0077
+ExecStart=/bin/sh -c '/usr/bin/usbguard generate-policy > /etc/usbguard/rules.conf'
+
+[Install]
+WantedBy=usbguard.service

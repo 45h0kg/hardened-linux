@@ -1,0 +1,10 @@
+# Settings for `bootc install to-disk` / `to-filesystem`.
+[install]
+# Only allow an install that encrypts the root file system with LUKS2 and
+# binds the key to this machine's TPM2 (systemd-cryptenroll). The disk is
+# unreadable when removed from the machine, and unlocks without a passphrase
+# only when the firmware and boot chain measure as expected.
+block = ["tpm2-luks"]
+
+[install.filesystem.root]
+type = "xfs"

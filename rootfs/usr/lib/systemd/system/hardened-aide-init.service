@@ -1,0 +1,15 @@
+# Build the AIDE baseline on first boot, once.
+[Unit]
+Description=Initialise the AIDE database
+ConditionPathExists=!/var/lib/aide/aide.db.gz
+After=local-fs.target
+
+[Service]
+Type=oneshot
+Nice=19
+IOSchedulingClass=idle
+ExecStart=/usr/sbin/aide --init
+ExecStart=/usr/bin/mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz
+
+[Install]
+WantedBy=multi-user.target

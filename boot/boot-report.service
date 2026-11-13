@@ -1,0 +1,17 @@
+[Unit]
+Description=Print the live security state to the console, then power off
+After=multi-user.target auditd.service fapolicyd.service usbguard.service firewalld.service chronyd.service sshd.service hardened-aide-init.service
+Wants=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStartPre=/usr/bin/sleep 60
+ExecStart=/usr/libexec/hardened-linux/boot-report.sh
+ExecStopPost=/usr/bin/systemctl poweroff
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/ttyAMA0
+TimeoutStartSec=infinity
+
+[Install]
+WantedBy=multi-user.target

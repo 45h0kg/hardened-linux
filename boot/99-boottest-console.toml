@@ -1,0 +1,4 @@
+# Test image only: send the console to the first PL011 serial port of the
+# QEMU "virt" machine so the boot and the report can be captured.
+kargs = ["console=ttyAMA0,115200"]
+match-architectures = ["aarch64"]

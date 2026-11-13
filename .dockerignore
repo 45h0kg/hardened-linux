@@ -1,0 +1,6 @@
+.git
+docs
+tests
+boot
+*.md
+!scap/README.md

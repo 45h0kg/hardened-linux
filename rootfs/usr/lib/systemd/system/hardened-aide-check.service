@@ -1,0 +1,12 @@
+# Compare the file system against the AIDE baseline. A non-zero exit (files
+# changed) marks the unit failed, which shows up in `systemctl --failed`
+# and in the journal for the log server to alert on.
+[Unit]
+Description=AIDE integrity check
+ConditionPathExists=/var/lib/aide/aide.db.gz
+
+[Service]
+Type=oneshot
+Nice=19
+IOSchedulingClass=idle
+ExecStart=/usr/sbin/aide --check

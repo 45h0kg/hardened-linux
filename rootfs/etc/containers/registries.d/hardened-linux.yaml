@@ -1,0 +1,5 @@
+# Look for sigstore signatures stored as OCI artifacts next to the image in
+# the registry (where `cosign sign` puts them).
+docker:
+  registry.example.com/hardened/hardened-linux:
+    use-sigstore-attachments: true

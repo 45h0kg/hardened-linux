@@ -1,0 +1,26 @@
+# sudo hardening.
+# Run every command in its own pseudo-terminal, so a command cannot push
+# keystrokes back into the invoking shell (TIOCSTI-style attacks).
+Defaults use_pty
+# Log every invocation, including subcommands a sudo'd shell starts, to a
+# dedicated file as well as syslog/journal.
+Defaults logfile="/var/log/sudo.log"
+Defaults log_subcmds
+Defaults log_allowed, log_denied
+# Ask for the password on every sudo (STIG); never share a timestamp across terminals.
+Defaults timestamp_timeout=0
+Defaults timestamp_type=tty
+# Never echo a password, never ask for root's password.
+Defaults !visiblepw
+Defaults !rootpw, !targetpw, !runaspw
+Defaults passwd_tries=3
+# A clean environment and a fixed PATH for every command.
+Defaults env_reset
+Defaults always_set_home
+Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+# Refuse to run without a tty (no sudo from cron or a web shell).
+Defaults requiretty
+# Members of wheel may run anything, with their password, and land in the
+# confined SELinux administrator role (sysadm_r/sysadm_t) rather than
+# unconfined_t. See the semanage login mapping in the Containerfile.
+%wheel ALL=(ALL) ROLE=sysadm_r TYPE=sysadm_t ALL

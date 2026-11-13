@@ -1,0 +1,5 @@
+## Lock the rule set. With -e 2 the kernel refuses any change to audit rules
+## or to the enabled flag until the next reboot, so an intruder who becomes
+## root cannot quietly switch auditing off; they have to reboot, which is
+## itself recorded and noticed. Changing the rules therefore needs a reboot.
+-e 2
