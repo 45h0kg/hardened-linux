@@ -2,9 +2,9 @@ mode: bootc
 scanner: openscap-scanner-1.4.6-1.el10.aarch64 / scap-security-guide-0.1.82-1.el10.noarch
 profile: xccdf_org.ssgproject.content_profile_stig_hardened_linux (tailoring: tailoring.xml)
 oscap exit code: 2 (0 = all pass, 2 = at least one rule failed)
-results: fail 50, notapplicable 75, notchecked 7, notselected 601, pass 340
-pass rate of evaluated rules: 340/390 = 87.2%
-XCCDF default score: 72.83 / 100
+results: fail 49, notapplicable 75, notchecked 7, notselected 601, pass 341
+pass rate of evaluated rules: 341/390 = 87.4%
+XCCDF default score: 72.37 / 100
 
 rules not passing (result, severity, rule id, title):
   fail    high    ensure_redhat_gpgkey_installed  -- Ensure Red Hat GPG Key Installed
@@ -13,7 +13,6 @@ rules not passing (result, severity, rule id, title):
   fail    high    installed_OS_is_vendor_supported  -- The Installed Operating System Is Vendor Supported
   fail    medium  account_password_selinux_faillock_dir  -- An SELinux Context must be configured for the pam_faillock.so records directory
   fail    medium  accounts_authorized_local_users  -- Only Authorized Local User Accounts Exist on Operating System
-  fail    medium  accounts_passwords_pam_faillock_dir  -- Lock Accounts Must Persist
   fail    medium  aide_build_database  -- Build and Test AIDE Database
   fail    medium  banner_etc_issue  -- Modify the System Login Banner
   fail    medium  directory_permissions_var_log_audit  -- System Audit Logs Must Have Mode 0750 or Less Permissive
@@ -25,6 +24,7 @@ rules not passing (result, severity, rule id, title):
   fail    medium  harden_sshd_macs_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140-2 Validated MACs: openssh.config
   fail    medium  harden_sshd_macs_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated MACs: opensshserver.config
   fail    medium  network_configure_name_resolution  -- Configure Multiple DNS Servers in /etc/resolv.conf
+  fail    medium  rsyslog_remote_loghost  -- Ensure Logs Sent To Remote Host
   fail    medium  service_auditd_enabled  -- Enable auditd Service
   fail    medium  service_chronyd_enabled  -- The Chronyd service is enabled
   fail    medium  service_fapolicyd_enabled  -- Enable the File Access Policy Service
@@ -35,7 +35,6 @@ rules not passing (result, severity, rule id, title):
   fail    medium  service_usbguard_enabled  -- Enable the USBGuard Service
   fail    medium  socket_pcscd_enabled  -- Enable the pcscd Socket
   fail    medium  sssd_enable_certmap  -- Enable Certmap in SSSD
-  fail    medium  sudo_require_reauthentication  -- Require Re-Authentication When Using the sudo Command
   fail    medium  sysctl_kernel_core_pattern  -- Disable storing core dumps
   fail    medium  sysctl_kernel_kexec_load_disabled  -- Disable Kernel Image Loading
   fail    medium  sysctl_kernel_kptr_restrict  -- Restrict Exposed Kernel Pointer Addresses Access

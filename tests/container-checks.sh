@@ -158,6 +158,8 @@ echo "default zone: $(firewall-offline-cmd --get-default-zone)"
 firewall-offline-cmd --zone=drop --list-all | sed 's/^/  /'
 check "default zone is drop" bash -c "[ \$(firewall-offline-cmd --get-default-zone) = drop ]"
 check "LogDenied=all" grep -qx 'LogDenied=all' /etc/firewalld/firewalld.conf
+check "nft loads libnftables (nftables and libnftnl match)" nft --version
+check "rsyslog has no placeholder remote host" bash -c "! grep -q logcollector /etc/rsyslog.conf"
 
 section "sshd"
 mkdir -p /tmp/hk && ssh-keygen -q -t ed25519 -N '' -f /tmp/hk/ssh_host_ed25519_key && ssh-keygen -q -t ecdsa -N '' -f /tmp/hk/ssh_host_ecdsa_key
@@ -177,6 +179,9 @@ echo "  openssl TLS 1.2+1.3 cipher suites allowed: $(openssl ciphers -s -tls1_2 
 section "PAM, passwords, login"
 authselect current | sed 's/^/  /'
 check "pam_faillock in system-auth" grep -q pam_faillock /etc/pam.d/system-auth
+check "faillock tally persists (/var/log/faillock)" grep -qx 'dir = /var/log/faillock' /etc/security/faillock.conf
+echo "  faillock dir label: $(matchpathcon /var/log/faillock 2>&1)"
+check "sudo timestamp_timeout=0 set exactly once" bash -c "[ \$(cat /etc/sudoers /etc/sudoers.d/* | grep -cE '^ *Defaults +timestamp_timeout *= *0') = 1 ]"
 check "pam_pwhistory in system-auth" grep -q pam_pwhistory /etc/pam.d/system-auth
 check "pam_pwquality in system-auth" grep -q pam_pwquality /etc/pam.d/system-auth
 grep -vE '^#|^$' /etc/security/faillock.conf | tr '\n' ' ' | sed 's/^/  faillock.conf: /'; echo

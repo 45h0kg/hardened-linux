@@ -70,7 +70,7 @@ docs/                         controls, threat model, verification outputs
 ## Build
 
 ```console
-docker build --platform linux/arm64 -t hardened-linux:latest .
+docker build --platform linux/arm64 -f Containerfile -t hardened-linux:latest .
 ```
 
 (`linux/amd64` works the same way; the x86-only kernel arguments are in
@@ -123,4 +123,30 @@ is a demonstration key; its private half was not kept.
 
 ## What was verified, and where
 
-<!-- VERIFICATION-SUMMARY -->
+Full outputs are in `docs/verification/`.
+
+- **Container checks** (`tests/container-checks.sh`): 153 passed, 0 failed.
+- **`bootc container lint`**: 13 passed, 1 skipped, 1 warning (`var-tmpfiles`).
+- **OpenSCAP, tailored STIG, in a container**: stock base 130/296 rules
+  pass (43.9%, score 31.11); hardened image 341/390 (87.4%, score 72.37).
+  Most remaining failures need a running system.
+- **Booted in QEMU** (arm64, TCG, UEFI; three boots, each after fixing what
+  the previous one found): lockdown `confidentiality`, SELinux enforcing
+  and `setenforce` refused, audit rules locked (`auditctl -D` refused),
+  all sysctls effective, user namespaces and blocked modules refused,
+  `/usr` read-only, `/tmp` and `/dev/shm` noexec, fapolicyd refusing
+  untrusted binaries and scripts, firewalld's drop zone loaded into
+  nftables, chrony synchronised from four NTS-authenticated servers, no
+  failed units. Live STIG scan: 378/393 rules pass (96.2%, score 94.36);
+  every remaining failure is explained in `docs/controls.md`.
+- **Fixed because of the boots**: fapolicyd's stock rule letting root run
+  programs from `/var/tmp`; rsyslog failing under the first sandbox; the
+  STIG's placeholder `logcollector` log host; an nftables/libnftnl mismatch
+  that left firewalld "active" with no rules loaded; the faillock tally on
+  a tmpfs; a duplicated sudo setting.
+- **Open**: `bootc status` fails from a system service under SELinux
+  (`execve: Permission denied`); not yet tested from an administrator login.
+- **Not verified**: TPM2-bound LUKS2, Secure Boot, measured boot, signed
+  updates end to end, USBGuard with real devices, packets dropped from
+  outside, remote TLS log forwarding, the kickstart, x86-only kernel
+  arguments.

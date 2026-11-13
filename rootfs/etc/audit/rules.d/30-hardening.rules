@@ -62,7 +62,7 @@
 
 ## Logins and sessions
 -w /var/log/lastlog -p wa -k logins
--w /var/run/faillock/ -p wa -k logins
+-w /var/log/faillock/ -p wa -k logins
 -w /var/run/utmp -p wa -k session
 -w /var/log/wtmp -p wa -k session
 -w /var/log/btmp -p wa -k session

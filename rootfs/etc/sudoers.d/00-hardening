@@ -7,8 +7,9 @@ Defaults use_pty
 Defaults logfile="/var/log/sudo.log"
 Defaults log_subcmds
 Defaults log_allowed, log_denied
-# Ask for the password on every sudo (STIG); never share a timestamp across terminals.
-Defaults timestamp_timeout=0
+# Ask for the password on every sudo: the STIG remediation already sets
+# "Defaults timestamp_timeout=0" in /etc/sudoers, and its check fails if the
+# setting appears twice. Never share a timestamp across terminals:
 Defaults timestamp_type=tty
 # Never echo a password, never ask for root's password.
 Defaults !visiblepw

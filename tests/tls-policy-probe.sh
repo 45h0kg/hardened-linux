@@ -30,6 +30,18 @@ for p in DEFAULT FUTURE FUTURE:INTERNET-COMPAT; do
 done
 echo
 echo "FUTURE:INTERNET-COMPAT, TLS 1.3 suites: $(openssl ciphers -s -tls1_3)"
-echo "MinProtocol in the OpenSSL back end: $(grep -h '^MinProtocol' /etc/crypto-policies/back-ends/opensslcnf.config)"
-echo "forcing TLS 1.2 against github.com (which supports it):"
-timeout 15 openssl s_client -tls1_2 -connect github.com:443 -servername github.com </dev/null 2>&1 | grep -m2 -E '^New,|alert|error' | sed 's/^/  /' 
+echo "protocol lines in the OpenSSL back end:"
+grep -hE '^(TLS|DTLS)\.(Min|Max)Protocol' /etc/crypto-policies/back-ends/opensslcnf.config | sed 's/^/  /'
+# `openssl s_client -tls1_2` sets the protocol range itself and so bypasses
+# the policy; a client that only caps the maximum at TLS 1.2 shows what an
+# ordinary program gets.
+echo "a client capped at TLS 1.2 against github.com (which supports it):"
+timeout 20 python3 -c '
+import socket, ssl
+c = ssl.create_default_context(); c.maximum_version = ssl.TLSVersion.TLSv1_2
+try:
+    with socket.create_connection(("github.com", 443), timeout=10) as s, c.wrap_socket(s, server_hostname="github.com") as t:
+        print("  connected:", t.version(), t.cipher()[0])
+except Exception as e:
+    print("  refused:", type(e).__name__, e)
+'  

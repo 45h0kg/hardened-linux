@@ -1,0 +1,403 @@
+# Boot 3: final image (nftables, rsyslog-loghost, faillock-dir and sudo fixes), except that
+# the audit watch on the faillock directory still pointed at /var/run/faillock. Serial
+# console of the QEMU VM, report section only, including the live SCAP scan.
+
+=== BEGIN BOOT REPORT ===
+
+$ uname -r; uname -m
+6.12.0-283.el10.aarch64
+aarch64
+
+$ cat /proc/cmdline
+BOOT_IMAGE=(hd0,gpt2)/boot/ostree/default-377fc0babdf22950a8b40746b1f1a726f551513b7ac7673aa8c018ee1104ee02/vmlinuz-6.12.0-283.el10.aarch64 root=UUID=d3a95fe2-930f-4a41-afa3-cd6808b77458 rw boot=UUID=12cec0dc-8cd8-48ed-bed3-602f39d5cce1 audit=1 audit_backlog_limit=8192 init_on_free=1 lockdown=confidentiality module.sig_enforce=1 lsm=lockdown,yama,integrity,selinux,bpf,landlock page_poison=1 pti=on init_on_alloc=1 slab_nomerge page_alloc.shuffle=1 randomize_kstack_offset=on mitigations=auto,nosmt debugfs=off iommu.strict=1 iommu.passthrough=0 efi=disable_early_pci_dma random.trust_cpu=off random.trust_bootloader=off console=ttyAMA0,115200 console=tty0 console=ttyS0 ostree=/ostree/boot.1/default/377fc0babdf22950a8b40746b1f1a726f551513b7ac7673aa8c018ee1104ee02/0
+
+$ getenforce
+Enforcing
+
+$ sestatus
+SELinux status:                 enabled
+SELinuxfs mount:                /sys/fs/selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             targeted
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy MLS status:              enabled
+Policy deny_unknown status:     allowed
+Memory protection checking:     actual (secure)
+Max kernel policy version:      33
+
+$ cat /sys/kernel/security/lockdown
+none integrity [confidentiality]
+
+$ cat /sys/kernel/security/lsm; echo
+lockdown,capability,yama,selinux,bpf,landlock,ima,evm
+
+$ cat /proc/sys/kernel/tainted
+0
+
+$ for k in kernel.kptr_restrict kernel.dmesg_restrict kernel.unprivileged_bpf_disabled net.core.bpf_jit_harden kernel.yama.ptrace_scope kernel.kexec_load_disabled kernel.perf_event_paranoid kernel.sysrq kernel.randomize_va_space kernel.io_uring_disabled vm.unprivileged_userfaultfd dev.tty.ldisc_autoload dev.tty.legacy_tiocsti user.max_user_namespaces fs.protected_symlinks fs.protected_hardlinks fs.protected_fifos fs.protected_regular fs.suid_dumpable kernel.core_pattern net.ipv4.ip_forward net.ipv4.conf.all.rp_filter net.ipv4.conf.all.accept_redirects net.ipv4.conf.all.send_redirects net.ipv4.conf.all.log_martians net.ipv4.tcp_syncookies net.ipv6.conf.all.accept_ra; do sysctl $k; done
+kernel.kptr_restrict = 2
+kernel.dmesg_restrict = 1
+kernel.unprivileged_bpf_disabled = 1
+net.core.bpf_jit_harden = 2
+kernel.yama.ptrace_scope = 2
+kernel.kexec_load_disabled = 1
+kernel.perf_event_paranoid = 2
+kernel.sysrq = 0
+kernel.randomize_va_space = 2
+kernel.io_uring_disabled = 2
+vm.unprivileged_userfaultfd = 0
+dev.tty.ldisc_autoload = 0
+dev.tty.legacy_tiocsti = 0
+user.max_user_namespaces = 0
+fs.protected_symlinks = 1
+fs.protected_hardlinks = 1
+fs.protected_fifos = 2
+fs.protected_regular = 2
+fs.suid_dumpable = 0
+kernel.core_pattern = |/bin/false
+net.ipv4.ip_forward = 0
+net.ipv4.conf.all.rp_filter = 1
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.all.log_martians = 1
+net.ipv4.tcp_syncookies = 1
+net.ipv6.conf.all.accept_ra = 0
+
+$ systemctl is-active auditd fapolicyd usbguard firewalld chronyd rsyslog sshd tmp.mount harden-dev-shm hardened-aide-init
+active
+active
+active
+active
+active
+active
+active
+active
+active
+inactive
+
+$ systemctl --failed --no-legend --plain
+
+$ systemctl is-enabled kdump.service debug-shell.service ctrl-alt-del.target systemd-coredump.socket
+masked
+masked
+masked
+masked
+
+$ ps -eo label,comm | grep -E "auditd|fapolicyd|usbguard|chronyd|sshd|firewalld|rsyslogd|systemd-journal" | grep -v grep
+system_u:system_r:kernel_t:s0   kauditd
+system_u:system_r:syslogd_t:s0  systemd-journal
+system_u:system_r:auditd_t:s0   auditd
+system_u:system_r:fapolicyd_t:s0 fapolicyd
+system_u:system_r:chronyd_t:s0  chronyd
+system_u:system_r:firewalld_t:s0 firewalld
+system_u:system_r:usbguard_t:s0 usbguard-daemon
+system_u:system_r:sshd_t:s0-s0:c0.c1023 sshd
+system_u:system_r:syslogd_t:s0  rsyslogd
+
+$ auditctl -s
+enabled 2
+failure 2
+pid 803
+rate_limit 0
+backlog_limit 8192
+lost 0
+backlog 0
+backlog_wait_time 60000
+backlog_wait_time_actual 0
+loginuid_immutable 0 unlocked
+
+$ echo "loaded audit rules: $(auditctl -l | wc -l)"; auditctl -l | head -n 15
+loaded audit rules: 184
+-a always,exit -F arch=b64 -S clock_settime,settimeofday,adjtimex -F key=time-change
+-a always,exit -F arch=b32 -S stime,settimeofday,adjtimex,clock_settime -F key=time-change
+-w /etc/localtime -p wa -k time-change
+-w /etc/chrony.conf -p wa -k time-change
+-w /etc/passwd -p wa -k identity
+-w /etc/group -p wa -k identity
+-w /etc/shadow -p wa -k identity
+-w /etc/gshadow -p wa -k identity
+-w /etc/security/opasswd -p wa -k identity
+-w /etc/subuid -p wa -k identity
+-w /etc/subgid -p wa -k identity
+-w /usr/sbin/useradd -p x -k identity
+-w /usr/sbin/usermod -p x -k identity
+-w /usr/sbin/userdel -p x -k identity
+-w /usr/sbin/groupadd -p x -k identity
+
+$ auditctl -D
+Error deleting rule (Operation not permitted)
+There was an error while processing parameters
+
+$ firewall-cmd --state; firewall-cmd --get-default-zone; firewall-cmd --list-all
+running
+drop
+drop (default, active)
+  target: DROP
+  ingress-priority: 0
+  egress-priority: 0
+  icmp-block-inversion: no
+  interfaces: enp0s1
+  sources: 
+  services: ssh
+  ports: 
+  protocols: 
+  forward: yes
+  masquerade: no
+  forward-ports: 
+  source-ports: 
+  icmp-blocks: 
+  rich rules: 
+
+$ rpm -q nftables libnftnl firewalld
+nftables-1.1.5-6.el10.aarch64
+libnftnl-1.3.0-3.el10.aarch64
+firewalld-2.4.3-4.el10.noarch
+
+$ nft list chain inet firewalld filter_INPUT 2>&1 | head -n 20
+table inet firewalld {
+	chain filter_INPUT {
+		type filter hook input priority filter + 10; policy accept;
+		ct state { established, related } accept
+		ct status dnat accept
+		iifname "lo" accept
+		ct state invalid log prefix "STATE_INVALID_DROP: "
+		ct state invalid drop
+		jump filter_INPUT_POLICIES
+		log prefix "FINAL_REJECT: "
+		reject with icmpx admin-prohibited
+	}
+}
+
+$ nft list chain inet firewalld filter_IN_drop_allow 2>&1 | head -n 12
+table inet firewalld {
+	chain filter_IN_drop_allow {
+		tcp dport 22 accept
+	}
+}
+
+$ journalctl -b -u firewalld --no-pager -o cat | tail -n 8
+Started firewalld.service - firewalld - dynamic firewall daemon.
+
+$ for m in / /usr /sysroot /etc /var /tmp /dev/shm; do findmnt -no TARGET,FSTYPE,OPTIONS --target $m | head -1; done
+/ overlay ro,relatime,seclabel,lowerdir+=/run/ostree/.private/cfsroot-lower,datadir+=/sysroot/ostree/repo/objects,redirect_dir=on,metacopy=on
+/ overlay ro,relatime,seclabel,lowerdir+=/run/ostree/.private/cfsroot-lower,datadir+=/sysroot/ostree/repo/objects,redirect_dir=on,metacopy=on
+/sysroot xfs ro,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota
+/etc xfs rw,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota
+/var xfs rw,relatime,seclabel,attr2,inode64,logbufs=8,logbsize=32k,noquota
+/tmp tmpfs rw,nosuid,nodev,noexec,seclabel,size=755088k,nr_inodes=1048576,inode64
+/dev/shm tmpfs rw,nosuid,nodev,noexec,seclabel,inode64
+
+$ touch /usr/test-write
+touch: cannot touch '/usr/test-write': Read-only file system
+
+$ cp /usr/bin/true /var/tmp/untrusted-true && /var/tmp/untrusted-true; echo "exit code $?"; rm -f /var/tmp/untrusted-true
+bash: line 1: /var/tmp/untrusted-true: Operation not permitted
+exit code 126
+
+$ printf "#!/bin/sh\necho script ran\n" > /var/tmp/untrusted.sh && chmod 755 /var/tmp/untrusted.sh && /var/tmp/untrusted.sh; echo "exit code $?"; rm -f /var/tmp/untrusted.sh
+bash: line 1: /var/tmp/untrusted.sh: Operation not permitted
+exit code 126
+
+$ cp /usr/bin/true /root/untrusted-true && /root/untrusted-true; echo "exit code $?"; rm -f /root/untrusted-true
+bash: line 1: /root/untrusted-true: Operation not permitted
+exit code 126
+
+$ cp /usr/bin/true /tmp/t && /tmp/t; echo "exit code $?"; rm -f /tmp/t
+bash: line 1: /tmp/t: Permission denied
+exit code 126
+
+$ setpriv --reuid=65534 --regid=65534 --clear-groups unshare --user true; echo "exit code $?"
+unshare: unshare failed: No space left on device
+exit code 1
+
+$ unshare --user true; echo "exit code $?"
+unshare: unshare failed: No space left on device
+exit code 1
+
+$ modprobe sctp; echo "exit code $?"
+modprobe: ERROR: libkmod/libkmod-module.c:1084 command_do() Error running install command '/bin/false' for module sctp: retcode 1
+modprobe: ERROR: could not insert 'sctp': Invalid argument
+exit code 1
+
+$ setenforce 0; echo "exit code $?"; getenforce
+setenforce:  security_setenforce() failed:  Permission denied
+exit code 2
+Enforcing
+
+$ getsebool deny_ptrace deny_execmem secure_mode_policyload user_exec_content ssh_sysadm_login
+deny_ptrace --> on
+deny_execmem --> on
+secure_mode_policyload --> on
+user_exec_content --> off
+ssh_sysadm_login --> off
+
+$ semanage login -l 2>&1 | tail -n +3
+
+%wheel               staff_u              s0-s0:c0.c1023       *
+__default__          user_u               s0                   *
+root                 unconfined_u         s0-s0:c0.c1023       *
+
+$ update-crypto-policies --show
+FUTURE:INTERNET-COMPAT
+
+$ chronyc -N sources 2>&1 | cat; chronyc -N authdata 2>&1 | cat
+MS Name/IP address         Stratum Poll Reach LastRx Last sample               
+===============================================================================
+^* time.cloudflare.com           3   6   377    48  +4622us[+4686us] +/-   61ms
+^+ nts.netnod.se                 1   6   377    61  -9397us[-9333us] +/-  138ms
+^- ptbtime1.ptb.de               1   6   355    42    +20ms[  +20ms] +/-   95ms
+^- ptbtime2.ptb.de               1   6    77    99    +20ms[  +21ms] +/-   97ms
+Name/IP address             Mode KeyID Type KLen Last Atmp  NAK Cook CLen
+=========================================================================
+time.cloudflare.com          NTS     1   30  128  377    0    0    8   64
+nts.netnod.se                NTS     1   15  256  391    0    0    8  100
+ptbtime1.ptb.de              NTS     1   15  256  372    0    0    8  100
+ptbtime2.ptb.de              NTS     1   15  256  372    0    0    7  100
+
+$ journalctl -b -u chronyd --no-pager -o cat | tail -n 15
+Starting chronyd.service - NTP client/server...
+chronyd version 4.9 starting (+CMDMON +REFCLOCK +RTC +PRIVDROP +SCFILTER +SIGND +NTS +SECHASH +IPV6 +DEBUG)
+Loaded seccomp filter (level 2)
+Started chronyd.service - NTP client/server.
+Could not receive NTS-KE message from 162.159.200.123:4460 (time.cloudflare.com) : The TLS connection was non-properly terminated.
+TLS handshake with 192.53.103.108:4460 (ptbtime1.ptb.de) failed : The TLS connection was non-properly terminated.
+TLS handshake with 192.53.103.104:4460 (ptbtime2.ptb.de) failed : The TLS connection was non-properly terminated.
+Source 194.58.204.204 changed to 194.58.204.197 (nts.netnod.se)
+Can't synchronise: not enough selectable sources
+Source 162.159.200.123 replaced with 162.159.200.1 (time.cloudflare.com)
+Selected source 162.159.200.1 (time.cloudflare.com)
+
+$ usbguard list-devices | head
+
+$ fapolicyd-cli --check-status 2>&1 | head -n 12
+Operating mode:
+Permissive: false
+Integrity: sha256
+reset_strategy: never
+Config generation: 1 (effective since 2026-11-13 03:37:31 +0000)
+Ruleset generation: 1 (effective since 2026-11-13 03:37:31 +0000)
+Trust database generation: 1 (effective since 2026-11-13 03:37:35 +0000)
+LMDB environment generation: 1 (effective since 2026-11-13 03:37:35 +0000)
+Trust database entries: 14858
+Timing collection mode: off
+Timing collection armed: false
+Timing collection last start time: never
+
+$ cat /proc/sys/kernel/random/boot_id >/dev/null; ls -l /dev/tpm* 2>&1; [ -d /sys/firmware/efi ] && echo "booted via UEFI"; od -An -tu1 -j4 -N1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c 2>&1 | sed "s/^/SecureBoot byte:/"
+ls: cannot access '/dev/tpm*': No such file or directory
+booted via UEFI
+SecureBoot byte:od: /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c: No such file or directory
+
+$ lsblk -o NAME,TYPE,FSTYPE,SIZE,MOUNTPOINTS
+NAME   TYPE FSTYPE  SIZE MOUNTPOINTS
+vda    disk          10G 
+├─vda1 part vfat    501M /boot/efi
+├─vda2 part xfs       1G /boot
+└─vda3 part xfs     8.5G /var
+                         /sysroot/ostree/deploy/default/var
+                         /sysroot
+                         /etc
+
+$ cryptsetup status root 2>&1 | head -3; dmsetup ls 2>&1
+/dev/mapper/root is inactive.
+No devices found
+
+$ bootc status 2>&1 | head -n 25
+error: Status: Preparing for write: Ensuring selinux install_t type: execve: Permission denied (os error 13)
+
+$ ps -o label= -p $$; ls -Z /usr/bin/bootc
+system_u:system_r:unconfined_service_t:s0
+system_u:object_r:install_exec_t:s0 /usr/bin/bootc
+
+$ journalctl -b --no-pager -o cat | grep -iE "rsyslog.*logcollector|omfwd" | head -n 3
+
+$ ausearch -m AVC,USER_AVC -ts boot 2>/dev/null | grep -c "type=AVC"
+5
+
+$ ausearch -m AVC,USER_AVC -ts boot -i 2>/dev/null | grep -oE "avc: +denied +\{[^}]*\} for +pid=[0-9]+ comm=[^ ]+ .*tcontext=[^ ]+ tclass=[^ ]+" | sed -E "s/pid=[0-9]+ //; s/ino=[0-9]+ //; s/dev=[^ ]+ //" | sort | uniq -c | sort -rn | head -n 20
+      1 avc:  denied  { setenforce } for  comm=setenforce scontext=system_u:system_r:unconfined_service_t:s0 tcontext=system_u:object_r:security_t:s0 tclass=security
+      1 avc:  denied  { read } for  comm=bootupctl name=bootupd-state.json scontext=system_u:system_r:bootupd_t:s0 tcontext=system_u:object_r:unlabeled_t:s0 tclass=file
+      1 avc:  denied  { open } for  comm=bootupctl path=/boot/bootupd-state.json scontext=system_u:system_r:bootupd_t:s0 tcontext=system_u:object_r:unlabeled_t:s0 tclass=file
+      1 avc:  denied  { mac_admin } for  comm=chcon capability=mac_admin  scontext=system_u:system_r:unconfined_service_t:s0 tcontext=system_u:system_r:unconfined_service_t:s0 tclass=capability2
+      1 avc:  denied  { getattr } for  comm=bootupctl path=/boot/bootupd-state.json scontext=system_u:system_r:bootupd_t:s0 tcontext=system_u:object_r:unlabeled_t:s0 tclass=file
+
+$ journalctl -b -u fapolicyd --no-pager -o cat | grep -E "^rule=" | sed -E "s/ pid=[0-9]+//; s/auid=[-0-9]+ //" | sort | uniq -c | sort -rn | head -n 15
+
+$ ausearch -m FANOTIFY -ts boot 2>/dev/null | grep -c type=FANOTIFY
+2246
+
+$ journalctl -b -p err --no-pager -o short-monotonic | tail -n 25
+[    5.204560] localhost kernel: osnoise: Error registering osnoise!
+[    5.217436] localhost systemd[1]: bpf-restrict-fs: Failed to load BPF object: Invalid argument
+[   24.844004] localhost systemd[1]: bpf-restrict-fs: Failed to load BPF object: Invalid argument
+[   99.515886] localhost.localdomain chronyd[1806]: Could not receive NTS-KE message from 162.159.200.123:4460 (time.cloudflare.com) : The TLS connection was non-properly terminated.
+[   99.531437] localhost.localdomain chronyd[1806]: TLS handshake with 192.53.103.108:4460 (ptbtime1.ptb.de) failed : The TLS connection was non-properly terminated.
+[   99.535810] localhost.localdomain chronyd[1806]: TLS handshake with 192.53.103.104:4460 (ptbtime2.ptb.de) failed : The TLS connection was non-properly terminated.
+
+$ journalctl -b -u rsyslog --no-pager -o cat | tail -n 15
+Starting rsyslog.service - System Logging Service...
+Started rsyslog.service - System Logging Service.
+[origin software="rsyslogd" swVersion="8.2604.0-6.el10" x-pid="2053" x-info="https://www.rsyslog.com"] start
+imjournal: No statefile exists, /var/lib/rsyslog/imjournal.state will be created (ignore if this is first run): No such file or directory [v8.2604.0-6.el10 try https://www.rsyslog.com/e/2040 ]
+imjournal: journal files changed, reloading...  [v8.2604.0-6.el10 try https://www.rsyslog.com/e/0 ]
+
+$ systemd-analyze security chronyd.service rsyslog.service auditd.service fapolicyd.service usbguard.service sshd.service --no-pager 2>&1 | tail -n 8
+
+UNIT              EXPOSURE PREDICATE HAPPY
+chronyd.service        3.9 OK        🙂
+rsyslog.service        5.2 MEDIUM    😐
+auditd.service         9.4 UNSAFE    😨
+fapolicyd.service      9.5 UNSAFE    😨
+usbguard.service       2.8 OK        🙂
+sshd.service           9.6 UNSAFE    😨
+
+$ systemd-analyze
+Bootup is not yet finished (org.freedesktop.systemd1.Manager.FinishTimestampMonotonic=0).
+Please try again later.
+Hint: Use 'systemctl list-jobs' to see active jobs
+
+$ systemctl status hardened-aide-init --no-pager -n 3 | head -n 8
+○ hardened-aide-init.service - Initialise the AIDE database
+     Loaded: loaded (/usr/lib/systemd/system/hardened-aide-init.service; enabled; preset: disabled)
+     Active: inactive (dead) since Fri 2026-11-13 03:43:17 UTC; 1min 56s ago
+ Invocation: f2d434d55a714ab09cae230073185f3a
+    Process: 1840 ExecStart=/usr/sbin/aide --init (code=exited, status=0/SUCCESS)
+    Process: 2173 ExecStart=/usr/bin/mv /var/lib/aide/aide.db.new.gz /var/lib/aide/aide.db.gz (code=exited, status=0/SUCCESS)
+   Main PID: 2173 (code=exited, status=0/SUCCESS)
+   Mem peak: 665.6M
+
+
+$ systemctl stop fapolicyd; systemctl is-active fapolicyd
+inactive
+
+$ SCAP_MODE=machine TMPDIR=/var/tmp /usr/libexec/hardened-linux/scap-scan.sh /var/tmp/scap
+mode: machine
+scanner: openscap-scanner-1.4.6-1.el10.aarch64 / scap-security-guide-0.1.82-1.el10.noarch
+profile: xccdf_org.ssgproject.content_profile_stig_hardened_linux (tailoring: tailoring.xml)
+oscap exit code: 2 (0 = all pass, 2 = at least one rule failed)
+results: fail 15, notapplicable 72, notchecked 7, notselected 601, pass 378
+pass rate of evaluated rules: 378/393 = 96.2%
+XCCDF default score: 94.36 / 100
+
+rules not passing (result, severity, rule id, title):
+  fail    high    ensure_redhat_gpgkey_installed  -- Ensure Red Hat GPG Key Installed
+  fail    high    grub2_admin_username  -- Set the Boot Loader Admin Username to a Non-Default Value
+  fail    high    grub2_password  -- Set Boot Loader Password in grub2
+  fail    high    harden_sshd_ciphers_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140 Validated Ciphers: openssh.config
+  fail    high    installed_OS_is_vendor_supported  -- The Installed Operating System Is Vendor Supported
+  fail    medium  accounts_authorized_local_users  -- Only Authorized Local User Accounts Exist on Operating System
+  fail    medium  banner_etc_issue  -- Modify the System Login Banner
+  fail    medium  harden_sshd_ciphers_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated Ciphers: opensshserver.config
+  fail    medium  harden_sshd_macs_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140-2 Validated MACs: openssh.config
+  fail    medium  harden_sshd_macs_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated MACs: opensshserver.config
+  fail    medium  network_configure_name_resolution  -- Configure Multiple DNS Servers in /etc/resolv.conf
+  fail    medium  rsyslog_remote_loghost  -- Ensure Logs Sent To Remote Host
+  fail    medium  service_fapolicyd_enabled  -- Enable the File Access Policy Service
+  fail    medium  sssd_enable_certmap  -- Enable Certmap in SSSD
+  fail    medium  sysctl_kernel_yama_ptrace_scope  -- Restrict usage of ptrace to descendant processes
+
+$ systemctl start fapolicyd; systemctl is-active fapolicyd
+active
+
+=== END BOOT REPORT ===

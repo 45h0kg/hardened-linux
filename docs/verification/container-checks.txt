@@ -188,7 +188,7 @@ PASS  last control line is -e 2 (immutable)
 PASS  -b 8192 present
   aarch64: 2 syscall rules contain a name unknown on that arch and would be skipped (-i): b64:lchown b64:rmdir
   x86_64: 0 syscall rules contain a name unknown on that arch and would be skipped (-i): none
-  watched paths that do not exist in the image (fine if created at runtime): /etc/localtime /var/log/btmp /var/log/lastlog /var/log/wtmp /var/run/faillock/ /var/run/utmp 
+  watched paths that do not exist in the image (fine if created at runtime): /etc/localtime /var/log/btmp /var/log/faillock/ /var/log/lastlog /var/log/wtmp /var/run/utmp 
 
 == firewalld (offline)
 PASS  firewall-offline-cmd --check-config
@@ -211,6 +211,8 @@ default zone: drop
     rich rules: 
 PASS  default zone is drop
 PASS  LogDenied=all
+PASS  nft loads libnftables (nftables and libnftnl match)
+PASS  rsyslog has no placeholder remote host
 
 == sshd
 PASS  sshd -t accepts the configuration
@@ -254,9 +256,12 @@ PASS  policy is FUTURE:INTERNET-COMPAT
   - without-nullok
   - with-smartcard
 PASS  pam_faillock in system-auth
+PASS  faillock tally persists (/var/log/faillock)
+  faillock dir label: /var/log/faillock	system_u:object_r:faillog_t:s0
+PASS  sudo timestamp_timeout=0 set exactly once
 PASS  pam_pwhistory in system-auth
 PASS  pam_pwquality in system-auth
-  faillock.conf: dir = /var/run/faillock audit silent deny = 3 fail_interval = 900 unlock_time = 900 even_deny_root root_unlock_time = 900 
+  faillock.conf: dir = /var/log/faillock audit silent deny = 3 fail_interval = 900 unlock_time = 900 even_deny_root root_unlock_time = 900 
   pwquality: dcredit = -1 dictcheck = 1 difok = 8 enforce_for_root lcredit = -1 maxclassrepeat = 4 maxrepeat = 3 minclass = 4 minlen = 15 ocredit = -1 retry = 3 ucredit = -1 minlen = 15 minclass = 4 dcredit = -1 ucredit = -1 lcredit = -1 ocredit = -1 maxrepeat = 3 maxclassrepeat = 4 difok = 8 dictcheck = 1 usercheck = 1 enforcing = 1 enforce_for_root retry = 3 
   login.defs: UMASK 077
   login.defs: PASS_MAX_DAYS 60
@@ -273,7 +278,6 @@ PASS  visudo -c (all sudoers files parse)
   Defaults logfile="/var/log/sudo.log"
   Defaults log_subcmds
   Defaults log_allowed, log_denied
-  Defaults timestamp_timeout=0
   Defaults timestamp_type=tty
   Defaults !visiblepw
   Defaults !rootpw, !targetpw, !runaspw
@@ -334,7 +338,7 @@ tmp.mount: Options=mode=1777,strictatime,nosuid,nodev,noexec,size=25%%,nr_inodes
 PASS  tmp.mount drop-in sets noexec,nosuid,nodev
 systemd-analyze security --offline (exposure 0 = fully sandboxed, 10 = none):
   chronyd      3.9 OK :-)
-  rsyslog      3.0 OK :-)
+  rsyslog      5.2 MEDIUM :-|
   auditd       9.2 UNSAFE :-{
   fapolicyd    9.4 UNSAFE :-{
   usbguard     2.8 OK :-)
@@ -366,7 +370,7 @@ PASS  policy.json default is reject
 PASS  signing public key is a valid EC key
   skopeo pulling an unsigned image from a registry not in policy.json:
   (inspect, which does not apply policy) exit 0
-  skopeo copy exit 1: time="2026-11-13T03:06:06Z" level=fatal msg="copying system image from manifest list: Source image rejected: Running image docker://quay.io/libpod/busybox:latest is rejected by policy."
+  skopeo copy exit 1: time="2026-11-13T03:52:12Z" level=fatal msg="copying system image from manifest list: Source image rejected: Running image docker://quay.io/libpod/busybox:latest is rejected by policy."
 PASS  unsigned pull rejected by policy.json
   bootc install: [install]
   bootc install: root-fs-type = "xfs"
@@ -376,4 +380,4 @@ PASS  unsigned pull rejected by policy.json
   bootc install: type = "xfs"
 PASS  bootc install requires tpm2-luks
 
-SUMMARY: 149 passed, 0 failed
+SUMMARY: 153 passed, 0 failed

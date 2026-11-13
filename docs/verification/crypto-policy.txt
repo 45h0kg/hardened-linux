@@ -31,3 +31,10 @@ image policy: FUTURE:INTERNET-COMPAT
   ptbtime2.ptb.de:4460           TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE ECDH, secp384r1, 384 bits OK
 
 FUTURE:INTERNET-COMPAT, TLS 1.3 suites: TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256
+protocol lines in the OpenSSL back end:
+  TLS.MinProtocol = TLSv1.3
+  TLS.MaxProtocol = TLSv1.3
+  DTLS.MinProtocol = DTLSv1.2
+  DTLS.MaxProtocol = DTLSv1.1
+a client capped at TLS 1.2 against github.com (which supports it):
+  refused: SSLError [SSL: NO_PROTOCOLS_AVAILABLE] no protocols available (_ssl.c:998)

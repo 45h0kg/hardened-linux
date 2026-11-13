@@ -25,6 +25,14 @@ LABEL org.opencontainers.image.title="hardened-linux" \
 #    openscap-*    SCAP scanner, oscap-im, and the SCAP Security Guide
 #    setools       seinfo/sesearch, used by the tests to inspect policy
 # ---------------------------------------------------------------------------
+#
+#    The base image can carry nftables/libnftnl builds newer than the
+#    mirrors. python3-nftables (needed by firewalld) then pulls an older
+#    nftables, which needs a libnftnl symbol only the matching older libnftnl
+#    has; RPM dependencies do not catch it, and the booted firewalld loaded
+#    no rules ("undefined symbol: nftnl_set_elem_set_imm"). distro-sync puts
+#    both packages on the repository versions; `nft --version` fails the
+#    build if they still do not match.
 RUN dnf -y install \
         audit audit-rules \
         aide \
@@ -34,6 +42,8 @@ RUN dnf -y install \
         rsyslog rsyslog-gnutls \
         openscap-scanner openscap-utils scap-security-guide \
         setools-console \
+    && dnf -y distro-sync libnftnl nftables \
+    && nft --version \
     && dnf clean all \
     && rm -rf /var/cache/dnf /var/lib/dnf /var/log/dnf* /var/log/hawkey.log
 
@@ -82,6 +92,12 @@ COPY rootfs/ /
 RUN for k in $(sed -nE 's/^([a-z0-9_.]+) *=.*/\1/p' /etc/sysctl.d/zz-hardening.conf); do \
         f="/etc/sysctl.d/$(echo "$k" | tr . _).conf"; [ -f "$f" ] && rm -v "$f"; \
     done; true
+
+# The STIG's rsyslog_remote_loghost remediation appends "*.* @@logcollector",
+# a placeholder host that does not resolve. Remove it; forwarding is set up
+# per site from /usr/share/hardened-linux/examples/rsyslog-remote.conf.
+RUN sed -i '/logcollector/d' /etc/rsyslog.conf \
+ && ! grep -q logcollector /etc/rsyslog.conf
 
 # Files copied from a build context get the builder's modes; set the ones
 # the consuming programs check.

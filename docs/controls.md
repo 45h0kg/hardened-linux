@@ -11,10 +11,30 @@ how far it was verified.
   configuration. A container shares Docker's kernel and has no systemd, so
   it cannot prove anything about the kernel or running services.
 - **Boot**: observed on the image booted in a QEMU VM (`boot/`), in
-  `docs/verification/boot-report.txt`.
+  `docs/verification/boot-report-*.txt`.
 - **Configured**: in the image or repository, not exercised by any test here.
 
-<!-- BOOT-STATUS -->
+**Boot status** (three QEMU boots, reports in `docs/verification/boot-report-{1,2,3}.txt`):
+
+- Boot 1 found fapolicyd's stock `/var/tmp` allow rule and stock shell
+  rules, and rsyslog failing under the first sandbox drop-in (cause not
+  captured).
+- Boot 2 found firewalld "active" but unable to load rules (nftables /
+  libnftnl mismatch), the STIG's `*.* @@logcollector` placeholder, and, in
+  the live STIG scan, the faillock tally on a tmpfs and a duplicated sudo
+  `timestamp_timeout`.
+- Boot 3 (final image): no failed units; firewalld running with the drop
+  zone in nftables; chrony synced from four NTS-authenticated servers; live
+  STIG scan 378/393 pass (96.2%). Remaining failures: deliberate
+  (`yama.ptrace_scope=2` instead of 1, banner text, FIPS SSH cipher/MAC
+  lists, Red Hat GPG key and vendor-support checks), not done (GRUB
+  superuser/password, multiple DNS servers, SSSD certmap, site list of
+  authorised accounts, remote log host), and `service_fapolicyd_enabled`
+  only because fapolicyd is stopped for the scan.
+- Open: `bootc status` from the report service fails with
+  `Ensuring selinux install_t type: execve: Permission denied`.
+- Not observable in the emulator: TPM, Secure Boot, LUKS (bootc-image-builder
+  disks are not encrypted).
 
 ## 1. Mandatory access control: SELinux
 
@@ -124,13 +144,16 @@ active).
 - authselect `local` + `with-faillock` + `with-pwhistory`, run *before* the
   STIG step (running it after reset the STIG's PAM changes in an earlier
   build).
-- faillock: 3 failures in 15 min lock for 15 min, root included.
+- faillock: 3 failures in 15 min lock for 15 min, root included; the tally
+  is kept in `/var/log/faillock` so a reboot does not clear it (the booted
+  SCAP scan flagged the earlier `/var/run/faillock`).
 - pwquality: 15+ characters, all four classes, dictionary check, root too.
 - login.defs: SHA-512 with 100000 rounds, `UMASK 077`, 60-day maximum age
   (STIG).
 - `/etc/profile.d/90-hardening.sh`: `umask 077`, readonly `TMOUT=900`.
 - sudo: `use_pty`, log file plus subcommand logging, password on every use
-  (`timestamp_timeout=0`), `requiretty`, `secure_path`, wheel only and only
+  (`timestamp_timeout=0`, set once, by the STIG in `/etc/sudoers`; a second
+  copy in the drop-in made the STIG check fail), `requiretty`, `secure_path`, wheel only and only
   into `sysadm_r`.
 
 Verified: Container (PAM files, `pwscore`, `visudo -c`).
@@ -178,7 +201,15 @@ Verified: Container (config), Boot (service active, device list).
 
 Default zone `drop` (no reply to unsolicited packets) with only `ssh`
 allowed, `LogDenied=all`. Verified: Container (`firewall-offline-cmd
---check-config`, zone listing), Boot (`firewall-cmd`).
+--check-config`, zone listing, `nft --version`), Boot (`firewall-cmd`,
+`nft list chain`; see the boot status above).
+
+The base image shipped nftables 1.1.7 and libnftnl 1.3.2, newer than the
+repositories; installing firewalld pulled python3-nftables 1.1.5, which
+downgraded nftables but not libnftnl, and the mismatched pair cannot load
+(`undefined symbol: nftnl_set_elem_set_imm`). On boot 2 firewalld reported
+"active" but loaded no rules. Step 1 now runs `dnf distro-sync libnftnl
+nftables` and fails the build if `nft --version` does.
 
 ## 12. Time: chrony with NTS
 
@@ -190,7 +221,12 @@ handshakes), Boot (`chronyc authdata`).
 
 - Enabled: auditd, fapolicyd, usbguard, firewalld, chronyd, rsyslog, sshd.
 - Masked: kdump, debug-shell, ctrl-alt-del.target, systemd-coredump.socket.
-- rsyslog sandbox drop-in (`systemd-analyze security` exposure 3.0).
+- rsyslog sandbox drop-in, file system part only (exposure 5.2 on the
+  booted VM). The first version (system call filter, capability set,
+  `PrivateDevices`, `ProtectClock`, `ProtectProc`; exposure 3.0) made
+  rsyslog fail to start at boot; the cause was not captured.
+- The STIG's `rsyslog_remote_loghost` remediation adds `*.* @@logcollector`,
+  a placeholder host; the build removes it.
 - No core dumps: coredump.conf `Storage=none`, `DefaultLimitCORE=0`,
   limits.d, `core_pattern=|/bin/false`, `suid_dumpable=0`.
 - `/tmp` tmpfs `nosuid,nodev,noexec`; `/dev/shm` remounted the same.
