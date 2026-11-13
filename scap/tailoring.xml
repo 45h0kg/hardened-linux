@@ -9,12 +9,12 @@
   <xccdf:version time="2026-11-13T00:00:00">1</xccdf:version>
   <xccdf:Profile id="xccdf_org.ssgproject.content_profile_stig_hardened_linux" extends="xccdf_org.ssgproject.content_profile_stig">
     <xccdf:title>DISA STIG for RHEL 10, tailored for hardened-linux</xccdf:title>
-    <xccdf:description>STIG with the FUTURE crypto policy instead of FIPS, and a time-limited faillock lockout.</xccdf:description>
+    <xccdf:description>STIG with the FUTURE:INTERNET-COMPAT crypto policy instead of FIPS, and a time-limited faillock lockout.</xccdf:description>
     <!-- FIPS mode: CentOS Stream ships no FIPS-validated crypto modules, so
-         fips=1 would claim a property the system does not have. FUTURE is
-         used instead (stronger minimums, not validated). -->
+         fips=1 would claim a property the system does not have. FUTURE plus
+         the INTERNET-COMPAT module is used instead (see scap/README.md). -->
     <xccdf:select idref="xccdf_org.ssgproject.content_rule_sysctl_crypto_fips_enabled" selected="false"/>
-    <xccdf:set-value idref="xccdf_org.ssgproject.content_value_var_system_crypto_policy">FUTURE</xccdf:set-value>
+    <xccdf:set-value idref="xccdf_org.ssgproject.content_value_var_system_crypto_policy">FUTURE:INTERNET-COMPAT</xccdf:set-value>
     <!-- Locked accounts unlock after 15 minutes rather than never, so an
          attacker at the console cannot lock administrators out for good. -->
     <xccdf:set-value idref="xccdf_org.ssgproject.content_value_var_accounts_passwords_pam_faillock_unlock_time">900</xccdf:set-value>

@@ -1,0 +1,3 @@
+# Audit from the first instruction, before auditd starts, with a backlog
+# large enough that early boot events are not dropped.
+kargs = ["audit=1", "audit_backlog_limit=8192"]

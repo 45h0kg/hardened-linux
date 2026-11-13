@@ -21,9 +21,13 @@ run 'auditctl -s'
 run 'echo "loaded audit rules: $(auditctl -l | wc -l)"; auditctl -l | head -n 15'
 run 'auditctl -D'
 run 'firewall-cmd --state; firewall-cmd --get-default-zone; firewall-cmd --list-all'
-run 'findmnt -no TARGET,FSTYPE,OPTIONS / /usr /sysroot /etc /var /tmp /dev/shm'
+run 'nft list ruleset | grep -E "^table|chain filter_INPUT|policy|ssh|drop|reject" | head -n 25'
+run 'journalctl -b -u firewalld --no-pager -o cat | tail -n 8'
+run 'for m in / /usr /sysroot /etc /var /tmp /dev/shm; do findmnt -no TARGET,FSTYPE,OPTIONS --target $m | head -1; done'
 run 'touch /usr/test-write'
 run 'cp /usr/bin/true /var/tmp/untrusted-true && /var/tmp/untrusted-true; echo "exit code $?"; rm -f /var/tmp/untrusted-true'
+run 'printf "#!/bin/sh\necho script ran\n" > /var/tmp/untrusted.sh && chmod 755 /var/tmp/untrusted.sh && /var/tmp/untrusted.sh; echo "exit code $?"; rm -f /var/tmp/untrusted.sh'
+run 'cp /usr/bin/true /root/untrusted-true && /root/untrusted-true; echo "exit code $?"; rm -f /root/untrusted-true'
 run 'cp /usr/bin/true /tmp/t && /tmp/t; echo "exit code $?"; rm -f /tmp/t'
 run 'setpriv --reuid=65534 --regid=65534 --clear-groups unshare --user true; echo "exit code $?"'
 run 'unshare --user true; echo "exit code $?"'
@@ -32,18 +36,34 @@ run 'setenforce 0; echo "exit code $?"; getenforce'
 run 'getsebool deny_ptrace deny_execmem secure_mode_policyload user_exec_content ssh_sysadm_login'
 run 'semanage login -l 2>&1 | tail -n +3'
 run 'update-crypto-policies --show'
-run 'chronyc -N sources; chronyc -N authdata'
+run 'chronyc -N sources 2>&1; chronyc -N authdata 2>&1; echo "exit code $?"'
+run 'journalctl -b -u chronyd --no-pager -o cat | tail -n 15'
 run 'usbguard list-devices | head'
 run 'fapolicyd-cli --check-status 2>&1 | head -n 12'
 run 'cat /proc/sys/kernel/random/boot_id >/dev/null; ls -l /dev/tpm* 2>&1; [ -d /sys/firmware/efi ] && echo "booted via UEFI"; od -An -tu1 -j4 -N1 /sys/firmware/efi/efivars/SecureBoot-8be4df61-93ca-11d2-aa0d-00e098032b8c 2>&1 | sed "s/^/SecureBoot byte:/"'
 run 'lsblk -o NAME,TYPE,FSTYPE,SIZE,MOUNTPOINTS'
 run 'cryptsetup status root 2>&1 | head -3; dmsetup ls 2>&1'
 run 'bootc status 2>&1 | head -n 25'
-run 'ausearch -m AVC,USER_AVC -ts boot 2>/dev/null | grep -c "type=AVC"; ausearch -m AVC -ts boot 2>/dev/null | grep -oE "denied \{[^}]*\} for .*comm=\"[^\"]*\"" | sort | uniq -c | sort -rn | head -n 15'
+run 'systemd-run --wait --pipe --quiet bootc status 2>&1 | head -n 25'
+run 'ausearch -m AVC,USER_AVC -ts boot 2>/dev/null | grep -c "type=AVC"'
+run 'ausearch -m AVC,USER_AVC -ts boot -i 2>/dev/null | grep -oE "avc: +denied +\{[^}]*\} for +pid=[0-9]+ comm=[^ ]+ .*tcontext=[^ ]+ tclass=[^ ]+" | sed -E "s/pid=[0-9]+ //; s/ino=[0-9]+ //; s/dev=[^ ]+ //" | sort | uniq -c | sort -rn | head -n 20'
+run 'ausearch -m FANOTIFY -ts boot -i 2>/dev/null | grep -E "^type=(FANOTIFY|SYSCALL)" | grep -oE "(exe|comm)=[^ ]+|resp=[^ ]+" | paste -sd " " | fold -w 200 | head -n 10'
 run 'ausearch -m FANOTIFY -ts boot 2>/dev/null | grep -c type=FANOTIFY'
 run 'journalctl -b -p err --no-pager -o short-monotonic | tail -n 25'
+run 'journalctl -b -u rsyslog --no-pager -o cat | tail -n 15'
 run 'systemd-analyze security chronyd.service rsyslog.service auditd.service fapolicyd.service usbguard.service sshd.service --no-pager 2>&1 | tail -n 8'
 run 'systemd-analyze'
+run 'systemctl status hardened-aide-init --no-pager -n 3 | head -n 8'
+echo
+# The scanner's SCE checks are shell scripts it writes to a temporary
+# directory and executes; /tmp is noexec and fapolicyd refuses untrusted
+# scripts, so for the duration of the scan only: TMPDIR=/var/tmp and
+# fapolicyd stopped. Both are printed as commands.
+run 'systemctl stop fapolicyd; systemctl is-active fapolicyd'
+echo
+echo "\$ SCAP_MODE=machine TMPDIR=/var/tmp /usr/libexec/hardened-linux/scap-scan.sh /var/tmp/scap"
+SCAP_MODE=machine TMPDIR=/var/tmp timeout 5400 /usr/libexec/hardened-linux/scap-scan.sh /var/tmp/scap 2>&1
+run 'systemctl start fapolicyd; systemctl is-active fapolicyd'
 echo
 echo "=== END BOOT REPORT ==="
 exit 0

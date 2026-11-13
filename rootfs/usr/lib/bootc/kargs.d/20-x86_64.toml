@@ -1,21 +1,12 @@
-# x86-only kernel arguments. bootc applies this file only on x86_64, so the
-# same image builds and boots on arm64 without passing unknown arguments to
-# the kernel there.
-kargs = [
-  # Remove the legacy vsyscall page: a fixed-address executable page that
-  # return-oriented exploits used as a gadget source.
-  "vsyscall=none",
-
-  # Enable the vendor IOMMU and isolate every device.
-  "intel_iommu=on",
-  "amd_iommu=force_isolation",
-
-  # Page table isolation and disabling 32-bit syscall entry, a rarely used
-  # and historically buggy path.
-  "pti=on",
-  "ia32_emulation=0",
-
-  # Transactional memory is a side-channel source (TAA); turn it off.
-  "tsx=off",
-]
+# x86-only kernel arguments; bootc applies this file only on x86_64, so the
+# same image boots on arm64 without unknown arguments.
+# vsyscall=none: remove the fixed-address legacy vsyscall page, a gadget
+#   source for return-oriented exploits.
+# intel_iommu=on amd_iommu=force_isolation: vendor IOMMU on, every device
+#   isolated.
+# pti=on: kernel page table isolation (Meltdown).
+# ia32_emulation=0: no 32-bit system call entry, a rarely used and
+#   historically buggy path.
+# tsx=off: transactional memory is a side-channel source (TAA).
+kargs = ["vsyscall=none", "intel_iommu=on", "amd_iommu=force_isolation", "pti=on", "ia32_emulation=0", "tsx=off"]
 match-architectures = ["x86_64"]

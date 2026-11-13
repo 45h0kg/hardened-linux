@@ -5,9 +5,11 @@
 # Evaluates the same tailored STIG profile that oscap-im applied at build
 # time, in the same mode oscap-im uses (the SCE check engine, with the
 # /run/.containerenv marker that tells SCAP content it is looking at a
-# bootable container image). Rules about the running kernel, mounted file
-# systems or live services are judged by the configuration that will take
-# effect at boot, not by the container's own kernel.
+# bootable container image). In a container, checks that read the running
+# kernel (sysctl values) see the container host's kernel, and checks that
+# ask systemd whether a service is active see no systemd at all, so those
+# results say nothing about the image; the boot test runs this same script
+# with SCAP_MODE=machine on the booted system.
 #
 # If the image lacks the scanner (the stock base image), it is installed
 # first; that adds a few packages to the scanned container and is noted in
@@ -27,7 +29,11 @@ if ! rpm -q openscap-scanner scap-security-guide openscap-engine-sce >/dev/null 
   dnf -q -y install openscap-scanner scap-security-guide openscap-engine-sce setools-console >/dev/null 2>&1 || exit 1
 fi
 mkdir -p "$OUT"
-touch /run/.containerenv
+# SCAP_MODE=bootc (default): evaluate as a bootable container image, the way
+# oscap-im does. SCAP_MODE=machine: evaluate a booted machine (used by the
+# boot test), where runtime values and service states are real.
+if [ "${SCAP_MODE:-bootc}" = bootc ]; then touch /run/.containerenv; fi
+echo "mode: ${SCAP_MODE:-bootc}"
 echo "scanner: $(rpm -q openscap-scanner) / $(rpm -q scap-security-guide)"
 echo "profile: $PROFILE (tailoring: $(basename "$TAIL"))"
 OSCAP_PREFERRED_ENGINE=SCE oscap xccdf eval --profile "$PROFILE" --tailoring-file "$TAIL" \

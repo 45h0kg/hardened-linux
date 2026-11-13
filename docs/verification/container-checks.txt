@@ -1,0 +1,379 @@
+
+== Image
+NAME="CentOS Stream"
+VERSION="10 (Coughlan)"
+kernel package: 6.12.0-283.el10.aarch64 (aarch64)
+
+== Packages
+PASS  package audit installed (4.2.1-3.el10)
+PASS  package aide installed (0.19.2-7.el10)
+PASS  package fapolicyd installed (2.0.1-1.el10)
+PASS  package fapolicyd-selinux installed (2.0.1-1.el10)
+PASS  package usbguard installed (1.1.4-2.el10)
+PASS  package usbguard-selinux installed (1.1.4-2.el10)
+PASS  package firewalld installed (2.4.3-4.el10)
+PASS  package rsyslog installed (8.2604.0-6.el10)
+PASS  package rsyslog-gnutls installed (8.2604.0-6.el10)
+PASS  package chrony installed (4.9-1.el10)
+PASS  package openscap-scanner installed (1.4.6-1.el10)
+PASS  package scap-security-guide installed (0.1.82-1.el10)
+PASS  package openssh-server installed (9.9p1-34.el10)
+PASS  package sudo installed (1.9.17-13.p2.el10)
+PASS  package authselect installed (1.5.3-1.el10)
+PASS  package crypto-policies installed (20260811-1.git4dcd294.el10)
+PASS  package selinux-policy-targeted installed (42.1.28-1.el10)
+PASS  package policycoreutils-python-utils installed (3.11-1.el10)
+PASS  package cryptsetup installed (2.8.6-2.el10)
+PASS  package tpm2-tools installed (5.7-6.el10)
+PASS  package telnet-server absent
+PASS  package tftp-server absent
+PASS  package vsftpd absent
+PASS  package gdm absent
+PASS  package nfs-utils absent
+PASS  package tuned absent
+
+== SELinux (policy in the image; enforcement needs a booted kernel)
+SELINUX=enforcing
+SELINUXTYPE=targeted
+PASS  SELINUX=enforcing in /etc/selinux/config
+PASS  SELINUXTYPE=targeted
+policy file: /etc/selinux/targeted/policy/policy.35
+Statistics for policy file: /etc/selinux/targeted/policy/policy.35
+Policy Version:             35 (MLS enabled)
+Target Policy:              selinux
+Handle unknown classes:     allow
+  Classes:             133    Permissions:         458
+  Sensitivities:         1    Categories:         1024
+  Types:              4747    Attributes:          252
+  Users:                 8    Roles:                15
+PASS  SELinux module fapolicyd present
+PASS  SELinux module usbguard present
+
+Login Name           SELinux User         MLS/MCS Range        Service
+
+%wheel               staff_u              s0-s0:c0.c1023       *
+__default__          user_u               s0                   *
+root                 unconfined_u         s0-s0:c0.c1023       *
+PASS  wheel mapped to staff_u
+PASS  __default__ mapped to user_u
+booleans as compiled into the policy file:
+PASS  deny_ptrace on
+PASS  deny_execmem on
+PASS  secure_mode_policyload on
+PASS  user_exec_content off
+PASS  ssh_sysadm_login off
+file contexts the policy assigns:
+  /usr/sbin/auditd                   system_u:object_r:auditd_exec_t:s0
+  /usr/sbin/fapolicyd                system_u:object_r:fapolicyd_exec_t:s0
+  /usr/sbin/usbguard-daemon          system_u:object_r:usbguard_exec_t:s0
+  /usr/sbin/sshd                     system_u:object_r:sshd_exec_t:s0
+  /usr/sbin/chronyd                  system_u:object_r:chronyd_exec_t:s0
+  /etc/shadow                        system_u:object_r:shadow_t:s0
+  /etc/audit/audit.rules             system_u:object_r:auditd_etc_t:s0
+  /var/log/audit/audit.log           system_u:object_r:auditd_log_t:s0
+  /etc/fapolicyd/fapolicyd.conf      system_u:object_r:fapolicyd_config_t:s0
+  /etc/usbguard/rules.conf           system_u:object_r:usbguard_rules_t:s0
+  /usr/bin/bootc                     system_u:object_r:install_exec_t:s0
+PASS  auditd labelled auditd_exec_t
+PASS  fapolicyd labelled fapolicyd_exec_t
+PASS  usbguard labelled usbguard_exec_t
+PASS  shadow labelled shadow_t
+ptrace allowed from user_t, staff_t, sysadm_t (conditional on deny_ptrace):
+  allow sysadm_t deny_rule_attr_5137:process ptrace; [ deny_ptrace ]:False
+
+== Kernel arguments (bootc kargs.d)
+/usr/lib/bootc/kargs.d/10-audit.toml  (architectures: all)
+   audit=1
+/usr/lib/bootc/kargs.d/10-audit_backlog_limit.toml  (architectures: all)
+   audit_backlog_limit=8192
+/usr/lib/bootc/kargs.d/10-init_on_free.toml  (architectures: all)
+   init_on_free=1
+/usr/lib/bootc/kargs.d/10-lockdown.toml  (architectures: all)
+   lockdown=confidentiality module.sig_enforce=1 lsm=lockdown,yama,integrity,selinux,bpf,landlock
+/usr/lib/bootc/kargs.d/10-page_poison.toml  (architectures: all)
+   page_poison=1
+/usr/lib/bootc/kargs.d/10-pti.toml  (architectures: all)
+   pti=on
+/usr/lib/bootc/kargs.d/11-memory.toml  (architectures: all)
+   init_on_alloc=1 init_on_free=1 page_poison=1 slab_nomerge page_alloc.shuffle=1 randomize_kstack_offset=on
+/usr/lib/bootc/kargs.d/12-cpu.toml  (architectures: all)
+   mitigations=auto,nosmt
+/usr/lib/bootc/kargs.d/13-debug-dma.toml  (architectures: all)
+   debugfs=off iommu.strict=1 iommu.passthrough=0 efi=disable_early_pci_dma
+/usr/lib/bootc/kargs.d/14-audit.toml  (architectures: all)
+   audit=1 audit_backlog_limit=8192
+/usr/lib/bootc/kargs.d/15-random.toml  (architectures: all)
+   random.trust_cpu=off random.trust_bootloader=off
+/usr/lib/bootc/kargs.d/20-x86_64.toml  (architectures: x86_64)
+   vsyscall=none intel_iommu=on amd_iommu=force_isolation pti=on ia32_emulation=0 tsx=off
+PASS  karg lockdown=confidentiality
+PASS  karg module.sig_enforce=1
+PASS  karg init_on_alloc=1
+PASS  karg init_on_free=1
+PASS  karg slab_nomerge
+PASS  karg page_poison=1
+PASS  karg page_alloc.shuffle=1
+PASS  karg randomize_kstack_offset=on
+PASS  karg mitigations=auto,nosmt
+PASS  karg debugfs=off
+PASS  karg audit=1
+PASS  karg audit_backlog_limit=8192
+PASS  karg iommu.strict=1
+PASS  karg lsm=lockdown,yama,integrity,selinux,bpf,landlock
+PASS  vsyscall=none (x86_64 only)
+kernel build options the arguments rely on:
+  CONFIG_BPF_LSM=y
+  CONFIG_IO_URING=y
+  CONFIG_RANDOMIZE_KSTACK_OFFSET=y
+  CONFIG_MODULE_SIG=y
+  CONFIG_MODULE_SIG_ALL=y
+  CONFIG_SHUFFLE_PAGE_ALLOCATOR=y
+  CONFIG_LEGACY_TIOCSTI=y
+  CONFIG_SECURITY_LOCKDOWN_LSM=y
+  CONFIG_SECURITY_LANDLOCK=y
+  CONFIG_LSM="lockdown,yama,integrity,selinux,bpf,landlock"
+
+== sysctl (effective value after merging every sysctl.d file in systemd order)
+PASS  sysctl kernel.kptr_restrict = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.dmesg_restrict = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.unprivileged_bpf_disabled = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.core.bpf_jit_harden = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.yama.ptrace_scope = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.kexec_load_disabled = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.perf_event_paranoid = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.sysrq = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.randomize_va_space = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl kernel.io_uring_disabled = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl vm.unprivileged_userfaultfd = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl dev.tty.ldisc_autoload = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl dev.tty.legacy_tiocsti = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl user.max_user_namespaces = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl fs.protected_symlinks = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl fs.protected_hardlinks = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl fs.protected_fifos = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl fs.protected_regular = 2  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl fs.suid_dumpable = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.ip_forward = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.conf.all.rp_filter = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.conf.all.accept_redirects = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv6.conf.all.accept_redirects = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.conf.all.send_redirects = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.conf.all.accept_source_route = 0  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.conf.all.log_martians = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv4.tcp_syncookies = 1  (/etc/sysctl.d/zz-hardening.conf)
+PASS  sysctl net.ipv6.conf.all.accept_ra = 0  (/etc/sysctl.d/zz-hardening.conf)
+files contributing: /etc/sysctl.d/net_ipv4_conf_all_forwarding.conf /etc/sysctl.d/zz-hardening.conf /usr/lib/sysctl.d/10-map-count.conf /usr/lib/sysctl.d/50-coredump.conf /usr/lib/sysctl.d/50-default.conf /usr/lib/sysctl.d/50-libkcapi-optmem_max.conf /usr/lib/sysctl.d/50-pid-max.conf /usr/lib/sysctl.d/50-redhat.conf 
+
+== Kernel module blacklist
+PASS  module cramfs blocked: 'install cramfs /bin/false' (not shipped)
+PASS  module freevxfs blocked: 'install freevxfs /bin/false' (not shipped)
+PASS  module hfs blocked: 'install hfs /bin/false' (not shipped)
+PASS  module hfsplus blocked: 'install hfsplus /bin/false' (not shipped)
+PASS  module jffs2 blocked: 'install jffs2 /bin/false' (not shipped)
+PASS  module udf blocked: 'install udf /bin/false' (ships with kernel)
+PASS  module squashfs blocked: 'install squashfs /bin/false' (ships with kernel)
+PASS  module dccp blocked: 'install dccp /bin/false' (not shipped)
+PASS  module sctp blocked: 'install sctp /bin/false' (ships with kernel)
+PASS  module rds blocked: 'install rds /bin/false' (not shipped)
+PASS  module tipc blocked: 'install tipc /bin/false' (ships with kernel)
+PASS  module firewire-core blocked: 'install firewire_core /bin/false' (not shipped)
+PASS  module thunderbolt blocked: 'install thunderbolt /bin/false' (not shipped)
+PASS  module bluetooth blocked: 'install bluetooth /bin/false' (ships with kernel)
+PASS  module usb-storage blocked: 'install usb_storage /bin/false' (ships with kernel)
+
+== Audit rules (merged as augenrules would; the kernel is not consulted)
+rules.d files: 10-base.rules 30-hardening.rules 99-finalize.rules access.rules actions.rules audit.rules audit_rules_usergroup_modification.rules delete.rules export.rules immutable.rules logins.rules modules.rules perm_mod.rules privileged.rules setgid.rules setuid.rules 
+rule lines after merge: 203  (syscall rules: 53, watches: 61)
+PASS  last control line is -e 2 (immutable)
+PASS  -b 8192 present
+  aarch64: 2 syscall rules contain a name unknown on that arch and would be skipped (-i): b64:lchown b64:rmdir
+  x86_64: 0 syscall rules contain a name unknown on that arch and would be skipped (-i): none
+  watched paths that do not exist in the image (fine if created at runtime): /etc/localtime /var/log/btmp /var/log/lastlog /var/log/wtmp /var/run/faillock/ /var/run/utmp 
+
+== firewalld (offline)
+PASS  firewall-offline-cmd --check-config
+default zone: drop
+  drop (default)
+    target: DROP
+    ingress-priority: 0
+    egress-priority: 0
+    icmp-block-inversion: no
+    interfaces: 
+    sources: 
+    services: ssh
+    ports: 
+    protocols: 
+    forward: yes
+    masquerade: no
+    forward-ports: 
+    source-ports: 
+    icmp-blocks: 
+    rich rules: 
+PASS  default zone is drop
+PASS  LogDenied=all
+
+== sshd
+PASS  sshd -t accepts the configuration
+  maxauthtries 3
+  clientaliveinterval 600
+  clientalivecountmax 1
+  permitrootlogin no
+  passwordauthentication no
+  kbdinteractiveauthentication no
+  x11forwarding no
+  allowtcpforwarding no
+  disableforwarding yes
+  ciphers aes256-gcm@openssh.com,chacha20-poly1305@openssh.com,aes256-ctr
+  macs hmac-sha2-256-etm@openssh.com,umac-128-etm@openssh.com,hmac-sha2-512-etm@openssh.com,hmac-sha2-256,umac-128@openssh.com,hmac-sha2-512
+  kexalgorithms ecdh-sha2-nistp256,curve25519-sha256,curve25519-sha256@libssh.org,ecdh-sha2-nistp384,mlkem768x25519-sha256,mlkem768nistp256-sha256,mlkem1024nistp384-sha384
+  hostkeyalgorithms ecdsa-sha2-nistp256,ecdsa-sha2-nistp256-cert-v01@openssh.com,sk-ecdsa-sha2-nistp256@openssh.com,sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384,ecdsa-sha2-nistp384-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp521-cert-v01@openssh.com,ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,sk-ssh-ed25519-cert-v01@openssh.com,rsa-sha2-256,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-512-cert-v01@openssh.com
+  pubkeyacceptedalgorithms ecdsa-sha2-nistp256,ecdsa-sha2-nistp256-cert-v01@openssh.com,sk-ecdsa-sha2-nistp256@openssh.com,sk-ecdsa-sha2-nistp256-cert-v01@openssh.com,ecdsa-sha2-nistp384,ecdsa-sha2-nistp384-cert-v01@openssh.com,ecdsa-sha2-nistp521,ecdsa-sha2-nistp521-cert-v01@openssh.com,ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,sk-ssh-ed25519@openssh.com,sk-ssh-ed25519-cert-v01@openssh.com,rsa-sha2-256,rsa-sha2-256-cert-v01@openssh.com,rsa-sha2-512,rsa-sha2-512-cert-v01@openssh.com
+  loglevel VERBOSE
+  allowgroups wheel
+  authenticationmethods publickey
+PASS  sshd effective: permitrootlogin no
+PASS  sshd effective: passwordauthentication no
+PASS  sshd effective: kbdinteractiveauthentication no
+PASS  sshd effective: allowtcpforwarding no
+PASS  sshd effective: x11forwarding no
+PASS  sshd effective: maxauthtries 3
+
+== Crypto policy
+current policy: FUTURE:INTERNET-COMPAT
+PASS  policy is FUTURE:INTERNET-COMPAT
+  openssl: CipherString = @SECLEVEL=2:kEECDH:kPSK:kDHEPSK:kECDHEPSK:-kRSAPSK:-kRSA:-aRSA:-aDSS:-AES128:-SHA256:-3DES:!DES:!RC4:!RC2:!IDEA:-SEED:!eNULL:!aNULL:-CBC:-SHA1:!M
+  openssl: SignatureAlgorithms = ?mldsa44:?mldsa65:?mldsa87:?ECDSA+SHA256:?ECDSA+SHA384:?ECDSA+SHA512:?ed25519:?ed448:?rsa_pss_pss_sha256:?rsa_pss_pss_sha384:?rsa_pss_pss_
+  openssl: Groups = *?X25519MLKEM768:?x25519_mlkem768:?SecP256r1MLKEM768:?p256_mlkem768:?SecP384r1MLKEM1024:?p384_mlkem1024/*?secp384r1:?secp256r1:?X25519
+  openssl TLS 1.2+1.3 cipher suites allowed: 3 (TLS1.2) / 2 (TLS1.3 incl.)
+
+== PAM, passwords, login
+  Profile ID: custom/hardening
+  Enabled features:
+  - with-faillock
+  - with-pwhistory
+  - without-nullok
+  - with-smartcard
+PASS  pam_faillock in system-auth
+PASS  pam_pwhistory in system-auth
+PASS  pam_pwquality in system-auth
+  faillock.conf: dir = /var/run/faillock audit silent deny = 3 fail_interval = 900 unlock_time = 900 even_deny_root root_unlock_time = 900 
+  pwquality: dcredit = -1 dictcheck = 1 difok = 8 enforce_for_root lcredit = -1 maxclassrepeat = 4 maxrepeat = 3 minclass = 4 minlen = 15 ocredit = -1 retry = 3 ucredit = -1 minlen = 15 minclass = 4 dcredit = -1 ucredit = -1 lcredit = -1 ocredit = -1 maxrepeat = 3 maxclassrepeat = 4 difok = 8 dictcheck = 1 usercheck = 1 enforcing = 1 enforce_for_root retry = 3 
+  login.defs: UMASK 077
+  login.defs: PASS_MAX_DAYS 60
+  login.defs: PASS_MIN_DAYS 1
+  login.defs: ENCRYPT_METHOD SHA512
+  pwscore 'password'                       -> Password quality check failed:  The password contains more than 4 characters of the same class consecutively
+  pwscore 'Summer2026!'                    -> Password quality check failed:  The password contains more than 4 characters of the same class consecutively
+  pwscore 'correct horse battery staple'   -> Password quality check failed:  The password contains more than 4 characters of the same class consecutively
+  pwscore 'k7#Vq9!rT2m@Lx4p'               -> 48
+
+== sudo
+PASS  visudo -c (all sudoers files parse)
+  Defaults use_pty
+  Defaults logfile="/var/log/sudo.log"
+  Defaults log_subcmds
+  Defaults log_allowed, log_denied
+  Defaults timestamp_timeout=0
+  Defaults timestamp_type=tty
+  Defaults !visiblepw
+  Defaults !rootpw, !targetpw, !runaspw
+  Defaults passwd_tries=3
+  Defaults env_reset
+  Defaults always_set_home
+  Defaults secure_path="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin"
+  Defaults requiretty
+  %wheel ALL=(ALL) ROLE=sysadm_r TYPE=sysadm_t ALL
+PASS  no NOPASSWD rule (comments ignored)
+
+== chrony (NTS)
+PASS  chronyd -p parses the configuration
+  server time.cloudflare.com iburst nts maxpoll 16
+  server nts.netnod.se iburst nts maxpoll 16
+  server ptbtime1.ptb.de iburst nts maxpoll 16
+  server ptbtime2.ptb.de iburst nts maxpoll 16
+  minsources 2
+  port 0
+  cmdport 0
+PASS  every server uses nts
+
+== fapolicyd, USBGuard, AIDE
+PASS  fapolicyd-cli --check-config
+  permissive = 0
+  trust = rpmdb,file
+  integrity = sha256
+  fapolicyd rule files: 10-languages.rules 20-dracut.rules 21-updaters.rules 30-patterns.rules 40-bad-elf.rules 41-shared-obj.rules 42-trusted-elf.rules 70-trusted-lang.rules 72-shell.rules 90-deny-execute.rules 95-allow-open.rules 99-deny-everything.rules 
+  ImplicitPolicyTarget=block
+  PresentDevicePolicy=apply-policy
+  InsertedDevicePolicy=apply-policy
+  IPCAllowedGroups=wheel
+  AuditBackend=LinuxAudit
+PASS  aide --config-check
+
+== systemd units
+PASS  auditd enabled
+PASS  fapolicyd enabled
+PASS  usbguard enabled
+PASS  usbguard-firstboot enabled
+PASS  firewalld enabled
+PASS  chronyd enabled
+PASS  rsyslog enabled
+PASS  sshd enabled
+PASS  harden-dev-shm enabled
+PASS  tmp.mount enabled
+PASS  hardened-aide-init enabled
+PASS  hardened-aide-check.timer enabled
+PASS  bootc-fetch-apply-updates.timer enabled
+PASS  kdump.service masked
+PASS  debug-shell.service masked
+PASS  ctrl-alt-del.target masked
+PASS  systemd-coredump.socket masked
+PASS  PrivateUsers=no drop-in for chrony-wait.service
+PASS  PrivateUsers=no drop-in for irqbalance.service
+PASS  PrivateUsers=no drop-in for nm-cloud-setup.service
+tmp.mount: Options=mode=1777,strictatime,nosuid,nodev,noexec,size=25%%,nr_inodes=1m  (drop-in wins)
+PASS  tmp.mount drop-in sets noexec,nosuid,nodev
+systemd-analyze security --offline (exposure 0 = fully sandboxed, 10 = none):
+  chronyd      3.9 OK :-)
+  rsyslog      3.0 OK :-)
+  auditd       9.2 UNSAFE :-{
+  fapolicyd    9.4 UNSAFE :-{
+  usbguard     2.8 OK :-)
+  firewalld    7.3 MEDIUM :-|
+  sshd         9.4 UNSAFE :-{
+
+== Core dumps, journald, mounts
+  coredump: ProcessSizeMax=1G
+  coredump: Storage=none
+  coredump: ProcessSizeMax=0
+  coredump: Storage=none
+  coredump: ProcessSizeMax=0
+  journald: Storage=persistent
+  journald: Storage=persistent
+  journald: Compress=yes
+  journald: SystemMaxUse=1G
+  journald: ForwardToSyslog=yes
+  journald: Seal=yes
+PASS  DefaultLimitCORE=0
+
+== Image integrity and updates
+  prepare-root.conf: [composefs]
+  prepare-root.conf: enabled = yes
+  prepare-root.conf: [sysroot]
+  prepare-root.conf: readonly = true
+PASS  composefs enabled
+PASS  policy.json parses
+PASS  policy.json default is reject
+PASS  signing public key is a valid EC key
+  skopeo pulling an unsigned image from a registry not in policy.json:
+  (inspect, which does not apply policy) exit 0
+  skopeo copy exit 1: time="2026-11-13T03:06:06Z" level=fatal msg="copying system image from manifest list: Source image rejected: Running image docker://quay.io/libpod/busybox:latest is rejected by policy."
+PASS  unsigned pull rejected by policy.json
+  bootc install: [install]
+  bootc install: root-fs-type = "xfs"
+  bootc install: [install]
+  bootc install: block = ["tpm2-luks"]
+  bootc install: [install.filesystem.root]
+  bootc install: type = "xfs"
+PASS  bootc install requires tpm2-luks
+
+SUMMARY: 149 passed, 0 failed

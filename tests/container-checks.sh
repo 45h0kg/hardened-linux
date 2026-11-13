@@ -78,9 +78,9 @@ for f in sorted(glob.glob('/usr/lib/bootc/kargs.d/*.toml')):
     print('   ' + ' '.join(d['kargs']))
 EOF
 for k in lockdown=confidentiality module.sig_enforce=1 init_on_alloc=1 init_on_free=1 slab_nomerge \
-         page_alloc.shuffle=1 randomize_kstack_offset=on debugfs=off audit=1 audit_backlog_limit=8192 \
+         page_poison=1 page_alloc.shuffle=1 randomize_kstack_offset=on mitigations=auto,nosmt debugfs=off audit=1 audit_backlog_limit=8192 \
          iommu.strict=1 lsm=lockdown,yama,integrity,selinux,bpf,landlock; do
-  check "karg $k" grep -q "\"$k\"" /usr/lib/bootc/kargs.d/10-hardening.toml
+  check "karg $k" grep -qF "\"$k\"" /usr/lib/bootc/kargs.d/10-lockdown.toml /usr/lib/bootc/kargs.d/11-memory.toml /usr/lib/bootc/kargs.d/12-cpu.toml /usr/lib/bootc/kargs.d/13-debug-dma.toml /usr/lib/bootc/kargs.d/14-audit.toml /usr/lib/bootc/kargs.d/15-random.toml
 done
 check "vsyscall=none (x86_64 only)" grep -q '"vsyscall=none"' /usr/lib/bootc/kargs.d/20-x86_64.toml
 echo "kernel build options the arguments rely on:"
@@ -170,7 +170,7 @@ done
 
 section "Crypto policy"
 echo "current policy: $(update-crypto-policies --show)"
-check "policy is FUTURE" bash -c "[ \$(update-crypto-policies --show) = FUTURE ]"
+check "policy is FUTURE:INTERNET-COMPAT" bash -c "[ \$(update-crypto-policies --show) = FUTURE:INTERNET-COMPAT ]"
 grep -E '^(MinProtocol|CipherString|Groups|SignatureAlgorithms)' /etc/crypto-policies/back-ends/opensslcnf.config 2>/dev/null | cut -c1-160 | sed 's/^/  openssl: /'
 echo "  openssl TLS 1.2+1.3 cipher suites allowed: $(openssl ciphers -s -tls1_2 2>/dev/null | tr ':' '\n' | wc -l) (TLS1.2) / $(openssl ciphers -s -tls1_3 2>/dev/null | tr ':' '\n' | wc -l) (TLS1.3 incl.)"
 
@@ -183,7 +183,7 @@ grep -vE '^#|^$' /etc/security/faillock.conf | tr '\n' ' ' | sed 's/^/  faillock
 grep -hvE '^#|^$' /etc/security/pwquality.conf /etc/security/pwquality.conf.d/*.conf 2>/dev/null | tr '\n' ' ' | sed 's/^/  pwquality: /'; echo
 grep -E '^(UMASK|ENCRYPT_METHOD|SHA_CRYPT_MIN_ROUNDS|PASS_MAX_DAYS|PASS_MIN_DAYS)' /etc/login.defs | sed 's/^/  login.defs: /'
 for pw in 'password' 'Summer2026!' 'correct horse battery staple' 'k7#Vq9!rT2m@Lx4p'; do
-  printf '  pwscore %-32s -> %s\n' "'$pw'" "$(echo "$pw" | pwscore 2>&1 | head -1)"
+  printf '  pwscore %-32s -> %s\n' "'$pw'" "$(echo "$pw" | pwscore 2>&1 | tr '\n' ' ' | sed 's/ *$//')"
 done
 
 section "sudo"

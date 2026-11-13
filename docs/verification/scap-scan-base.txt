@@ -1,0 +1,176 @@
+note: installing openscap-scanner, scap-security-guide, openscap-engine-sce and setools-console into this container to scan it
+mode: bootc
+scanner: openscap-scanner-1.4.6-1.el10.aarch64 / scap-security-guide-0.1.82-1.el10.noarch
+profile: xccdf_org.ssgproject.content_profile_stig_hardened_linux (tailoring: tailoring.xml)
+oscap exit code: 2 (0 = all pass, 2 = at least one rule failed)
+results: fail 166, notapplicable 170, notchecked 6, notselected 601, pass 130
+pass rate of evaluated rules: 130/296 = 43.9%
+XCCDF default score: 31.11 / 100
+
+rules not passing (result, severity, rule id, title):
+  fail    high    configure_crypto_policy  -- Configure System Cryptography Policy
+  fail    high    disable_ctrlaltdel_burstaction  -- Disable Ctrl-Alt-Del Burst Action
+  fail    high    disable_ctrlaltdel_reboot  -- Disable Ctrl-Alt-Del Reboot Activation
+  fail    high    ensure_gpgcheck_local_packages  -- Ensure gpgcheck Enabled for Local Packages
+  fail    high    ensure_redhat_gpgkey_installed  -- Ensure Red Hat GPG Key Installed
+  fail    high    grub2_admin_username  -- Set the Boot Loader Admin Username to a Non-Default Value
+  fail    high    harden_sshd_ciphers_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140 Validated Ciphers: openssh.config
+  fail    high    installed_OS_is_vendor_supported  -- The Installed Operating System Is Vendor Supported
+  fail    high    no_empty_passwords  -- Prevent Login to Accounts With Empty Password
+  fail    high    sshd_disable_empty_passwords  -- Disable SSH Access via Empty Passwords
+  fail    medium  account_disable_post_pw_expiration  -- Set Account Expiration Following Inactivity
+  fail    medium  account_password_pam_faillock_password_auth  -- Configure the Use of the pam_faillock.so Module in the /etc/pam.d/password-auth File.
+  fail    medium  account_password_pam_faillock_system_auth  -- Configure the Use of the pam_faillock.so Module in the /etc/pam.d/system-auth File.
+  fail    medium  accounts_logon_fail_delay  -- Ensure the Logon Failure Delay is Set Correctly in login.defs
+  fail    medium  accounts_maximum_age_login_defs  -- Set Password Maximum Age
+  fail    medium  accounts_minimum_age_login_defs  -- Set Password Minimum Age
+  fail    medium  accounts_password_pam_dcredit  -- Ensure PAM Enforces Password Requirements - Minimum Digit Characters
+  fail    medium  accounts_password_pam_dictcheck  -- Ensure PAM Enforces Password Requirements - Prevent the Use of Dictionary Words
+  fail    medium  accounts_password_pam_difok  -- Ensure PAM Enforces Password Requirements - Minimum Different Characters
+  fail    medium  accounts_password_pam_enforce_root  -- Ensure PAM Enforces Password Requirements - Enforce for root User
+  fail    medium  accounts_password_pam_lcredit  -- Ensure PAM Enforces Password Requirements - Minimum Lowercase Characters
+  fail    medium  accounts_password_pam_maxclassrepeat  -- Ensure PAM Enforces Password Requirements - Maximum Consecutive Repeating Characters from Same Character Class
+  fail    medium  accounts_password_pam_maxrepeat  -- Set Password Maximum Consecutive Repeating Characters
+  fail    medium  accounts_password_pam_minclass  -- Ensure PAM Enforces Password Requirements - Minimum Different Categories
+  fail    medium  accounts_password_pam_minlen  -- Ensure PAM Enforces Password Requirements - Minimum Length
+  fail    medium  accounts_password_pam_ocredit  -- Ensure PAM Enforces Password Requirements - Minimum Special Characters
+  fail    medium  accounts_password_pam_pwquality_retry  -- Ensure PAM Enforces Password Requirements - Authentication Retry Prompts Permitted Per-Session in /etc/security/pwquality.conf
+  fail    medium  accounts_password_pam_ucredit  -- Ensure PAM Enforces Password Requirements - Minimum Uppercase Characters
+  fail    medium  accounts_password_pam_unix_rounds_password_auth  -- Set number of Password Hashing Rounds - password-auth
+  fail    medium  accounts_password_pam_unix_rounds_system_auth  -- Set number of Password Hashing Rounds - system-auth
+  fail    medium  accounts_passwords_pam_faillock_audit  -- Account Lockouts Must Be Logged
+  fail    medium  accounts_passwords_pam_faillock_deny  -- Lock Accounts After Failed Password Attempts
+  fail    medium  accounts_passwords_pam_faillock_deny_root  -- Configure the root Account for Failed Password Attempts
+  fail    medium  accounts_passwords_pam_faillock_dir  -- Lock Accounts Must Persist
+  fail    medium  accounts_passwords_pam_faillock_interval  -- Set Interval For Counting Failed Password Attempts
+  fail    medium  accounts_passwords_pam_faillock_unlock_time  -- Set Lockout Time for Failed Password Attempts
+  fail    medium  accounts_tmout  -- Set Interactive Session Timeout
+  fail    medium  accounts_umask_etc_bashrc  -- Ensure the Default Bash Umask is Set Correctly
+  fail    medium  accounts_umask_etc_login_defs  -- Ensure the Default Umask is Set Correctly in login.defs
+  fail    medium  accounts_umask_etc_profile  -- Ensure the Default Umask is Set Correctly in /etc/profile
+  fail    medium  aide_build_database  -- Build and Test AIDE Database
+  fail    medium  aide_check_audit_tools  -- Configure AIDE to Verify the Audit Tools
+  fail    medium  aide_scan_notification  -- Configure Notification of Post-AIDE Scan Details
+  fail    medium  aide_use_fips_hashes  -- Configure AIDE to Use FIPS 140-2 for Validating Hashes
+  fail    medium  banner_etc_issue  -- Modify the System Login Banner
+  fail    medium  chronyd_or_ntpd_set_maxpoll  -- Configure Time Service Maxpoll Interval
+  fail    medium  chronyd_server_directive  -- Ensure Chrony is only configured with the server directive
+  fail    medium  configure_opensc_card_drivers  -- Configure opensc Smart Card Drivers
+  fail    medium  coredump_disable_backtraces  -- Disable core dump backtraces
+  fail    medium  coredump_disable_storage  -- Disable storing core dump
+  fail    medium  disable_host_auth  -- Disable Host-Based Authentication
+  fail    medium  disable_users_coredumps  -- Disable Core Dumps for All Users
+  fail    medium  fapolicy_default_deny  -- Configure Fapolicy Module to Employ a Deny-all, Permit-by-exception Policy to Allow the Execution of Authorized Software Programs.
+  fail    medium  file_permissions_sshd_config_not_modified  -- Verify Permissions on SSH Server Configuration Files Are Not Modified
+  fail    medium  firewalld_sshd_port_enabled  -- Enable SSH Server firewalld Firewall Exception
+  fail    medium  grub2_disable_interactive_boot  -- Verify that Interactive Boot is Disabled
+  fail    medium  grub2_init_on_free  -- The system must booted with init_on_free=1
+  fail    medium  grub2_page_poison_argument  -- Enable page allocator poisoning
+  fail    medium  harden_sshd_ciphers_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated Ciphers: opensshserver.config
+  fail    medium  harden_sshd_macs_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140-2 Validated MACs: openssh.config
+  fail    medium  harden_sshd_macs_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated MACs: opensshserver.config
+  fail    medium  install_smartcard_packages  -- Install Smart Card Packages For Multifactor Authentication
+  fail    medium  kernel_module_bluetooth_disabled  -- Disable Bluetooth Kernel Module
+  fail    medium  kernel_module_can_disabled  -- Disable CAN Support
+  fail    medium  kernel_module_sctp_disabled  -- Disable SCTP Support
+  fail    medium  kernel_module_usb-storage_disabled  -- Disable Modprobe Loading of USB Storage Driver
+  fail    medium  network_configure_name_resolution  -- Configure Multiple DNS Servers in /etc/resolv.conf
+  fail    medium  networkmanager_dns_mode  -- NetworkManager DNS Mode Must Be Must Configured
+  fail    medium  package_aide_installed  -- Install AIDE
+  fail    medium  package_audispd-plugins_installed  -- Install audispd-plugins Package
+  fail    medium  package_audit_installed  -- Ensure the audit Subsystem is Installed
+  fail    medium  package_cron_installed  -- Install the cron service
+  fail    medium  package_fapolicyd_installed  -- Install fapolicyd Package
+  fail    medium  package_firewalld_installed  -- Install firewalld Package
+  fail    medium  package_gnutls-utils_installed  -- Ensure gnutls-utils is installed
+  fail    medium  package_gssproxy_removed  -- Uninstall gssproxy Package
+  fail    medium  package_libreswan_installed  -- Install libreswan Package
+  fail    medium  package_nss-tools_installed  -- Ensure nss-tools is installed
+  fail    medium  package_opensc_installed  -- Install the opensc Package For Multifactor Authentication
+  fail    medium  package_pcsc-lite-ccid_installed  -- Install the pcsc-lite-ccid package
+  fail    medium  package_pcsc-lite_installed  -- Install the pcsc-lite package
+  fail    medium  package_postfix_installed  -- The Postfix package is installed
+  fail    medium  package_rsyslog-gnutls_installed  -- Ensure rsyslog-gnutls is installed
+  fail    medium  package_rsyslog_installed  -- Ensure rsyslog is Installed
+  fail    medium  package_s-nail_installed  -- The s-nail Package Is Installed
+  fail    medium  package_usbguard_installed  -- Install usbguard Package
+  fail    medium  postfix_client_configure_mail_alias  -- Configure System to Forward All Mail For The Root Account
+  fail    medium  rsyslog_remote_loghost  -- Ensure Logs Sent To Remote Host
+  fail    medium  selinux_context_elevation_for_sudo  -- Elevate The SELinux Context When An Administrator Calls The Sudo Command
+  fail    medium  service_chronyd_enabled  -- The Chronyd service is enabled
+  fail    medium  service_debug-shell_disabled  -- Disable debug-shell SystemD Service
+  fail    medium  service_fapolicyd_enabled  -- Enable the File Access Policy Service
+  fail    medium  service_kdump_disabled  -- Disable KDump Kernel Crash Analyzer (kdump)
+  fail    medium  service_rsyslog_enabled  -- Enable rsyslog Service
+  fail    medium  service_sshd_enabled  -- Enable the OpenSSH Service
+  fail    medium  service_systemd-coredump_disabled  -- Disable acquiring, saving, and processing core dumps
+  fail    medium  service_systemd-journald_enabled  -- Enable systemd-journald Service
+  fail    medium  service_usbguard_enabled  -- Enable the USBGuard Service
+  fail    medium  set_password_hashing_algorithm_logindefs  -- Set Password Hashing Algorithm in /etc/login.defs
+  fail    medium  set_password_hashing_algorithm_passwordauth  -- Set PAM Password Hashing Algorithm - password-auth
+  fail    medium  set_password_hashing_algorithm_systemauth  -- Set PAM Password Hashing Algorithm - system-auth
+  fail    medium  socket_pcscd_enabled  -- Enable the pcscd Socket
+  fail    medium  sshd_disable_gssapi_auth  -- Disable GSSAPI Authentication
+  fail    medium  sshd_disable_kerb_auth  -- Disable Kerberos Authentication
+  fail    medium  sshd_disable_rhosts  -- Disable SSH Support for .rhosts Files
+  fail    medium  sshd_disable_root_login  -- Disable SSH Root Login
+  fail    medium  sshd_disable_user_known_hosts  -- Disable SSH Support for User Known Hosts
+  fail    medium  sshd_disable_x11_forwarding  -- Disable X11 Forwarding
+  fail    medium  sshd_do_not_permit_user_env  -- Do Not Allow SSH Environment Options
+  fail    medium  sshd_enable_pubkey_auth  -- Enable Public Key Authentication
+  fail    medium  sshd_enable_strictmodes  -- Enable Use of Strict Mode Checking
+  fail    medium  sshd_enable_warning_banner  -- Enable SSH Warning Banner
+  fail    medium  sshd_print_last_log  -- Enable SSH Print Last Log
+  fail    medium  sshd_rekey_limit  -- Force frequent session key renegotiation
+  fail    medium  sshd_set_idle_timeout  -- Set SSH Client Alive Interval
+  fail    medium  sshd_set_keepalive  -- Set SSH Client Alive Count Max
+  fail    medium  sshd_set_loglevel_verbose  -- Set SSH Daemon LogLevel to VERBOSE
+  fail    medium  sshd_x11_use_localhost  -- Prevent remote hosts from connecting to the proxy display
+  fail    medium  sssd_certificate_verification  -- Certificate status checking in SSSD
+  fail    medium  sssd_enable_certmap  -- Enable Certmap in SSSD
+  fail    medium  sssd_enable_smartcards  -- Enable Smartcards in SSSD
+  fail    medium  sudo_require_reauthentication  -- Require Re-Authentication When Using the sudo Command
+  fail    medium  sudoers_validate_passwd  -- Ensure invoking users password for privilege escalation when using sudo
+  fail    medium  sysctl_kernel_core_pattern  -- Disable storing core dumps
+  fail    medium  sysctl_kernel_kexec_load_disabled  -- Disable Kernel Image Loading
+  fail    medium  sysctl_kernel_kptr_restrict  -- Restrict Exposed Kernel Pointer Addresses Access
+  fail    medium  sysctl_kernel_randomize_va_space  -- Enable Randomized Layout of Virtual Address Space
+  fail    medium  sysctl_kernel_unprivileged_bpf_disabled  -- Disable Access to Network bpf() Syscall From Unprivileged Processes
+  fail    medium  sysctl_kernel_yama_ptrace_scope  -- Restrict usage of ptrace to descendant processes
+  fail    medium  sysctl_net_core_bpf_jit_harden  -- Harden the operation of the BPF just-in-time compiler
+  fail    medium  sysctl_net_ipv4_conf_all_accept_redirects  -- Disable Accepting ICMP Redirects for All IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_all_accept_source_route  -- Disable Kernel Parameter for Accepting Source-Routed Packets on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_all_forwarding  -- Disable Kernel Parameter for IPv4 Forwarding on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_all_rp_filter  -- Enable Kernel Parameter to Use Reverse Path Filtering on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_all_send_redirects  -- Disable Kernel Parameter for Sending ICMP Redirects on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_default_accept_redirects  -- Disable Kernel Parameter for Accepting ICMP Redirects by Default on IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_default_accept_source_route  -- Disable Kernel Parameter for Accepting Source-Routed Packets on IPv4 Interfaces by Default
+  fail    medium  sysctl_net_ipv4_conf_default_rp_filter  -- Enable Kernel Parameter to Use Reverse Path Filtering on all IPv4 Interfaces by Default
+  fail    medium  sysctl_net_ipv4_conf_default_send_redirects  -- Disable Kernel Parameter for Sending ICMP Redirects on all IPv4 Interfaces by Default
+  fail    medium  sysctl_net_ipv4_icmp_echo_ignore_broadcasts  -- Enable Kernel Parameter to Ignore ICMP Broadcast Echo Requests on IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_tcp_syncookies  -- Enable Kernel Parameter to Use TCP Syncookies on Network Interfaces
+  fail    medium  sysctl_net_ipv6_conf_all_accept_ra  -- Configure Accepting Router Advertisements on All IPv6 Interfaces
+  fail    medium  sysctl_net_ipv6_conf_all_accept_redirects  -- Disable Accepting ICMP Redirects for All IPv6 Interfaces
+  fail    medium  sysctl_net_ipv6_conf_all_accept_source_route  -- Disable Kernel Parameter for Accepting Source-Routed Packets on all IPv6 Interfaces
+  fail    medium  sysctl_net_ipv6_conf_all_forwarding  -- Disable Kernel Parameter for IPv6 Forwarding
+  fail    medium  sysctl_net_ipv6_conf_default_accept_ra  -- Disable Accepting Router Advertisements on all IPv6 Interfaces by Default
+  fail    medium  sysctl_net_ipv6_conf_default_accept_redirects  -- Disable Kernel Parameter for Accepting ICMP Redirects by Default on IPv6 Interfaces
+  fail    medium  sysctl_net_ipv6_conf_default_accept_source_route  -- Disable Kernel Parameter for Accepting Source-Routed Packets on IPv6 Interfaces by Default
+  fail    medium  usbguard_generate_policy  -- Generate USBGuard Policy
+  fail    medium  use_pam_wheel_for_su  -- Enforce usage of pam_wheel for su authentication
+  fail    medium  xwindows_runlevel_target  -- Disable Graphical Environment Startup By Setting Default Target
+  fail    low     accounts_max_concurrent_login_sessions  -- Limit the Number of Concurrent Login Sessions Allowed Per User
+  fail    low     aide_verify_acls  -- Configure AIDE to Verify Access Control Lists (ACLs)
+  fail    low     aide_verify_ext_attributes  -- Configure AIDE to Verify Extended Attributes
+  fail    low     chronyd_client_only  -- Disable chrony daemon from acting as server
+  fail    low     chronyd_no_chronyc_network  -- Disable network management of chrony daemon
+  fail    low     grub2_audit_argument  -- Enable Auditing for Processes Which Start Prior to the Audit Daemon
+  fail    low     grub2_audit_backlog_limit_argument  -- Extend Audit Backlog Limit for the Audit Daemon
+  fail    low     grub2_pti_argument  -- Enable Kernel Page-Table Isolation (KPTI)
+  fail    low     kernel_module_tipc_disabled  -- Disable TIPC Support
+  fail    low     package_nfs-utils_removed  -- Uninstall nfs-utils Package
+  fail    low     sysctl_kernel_dmesg_restrict  -- Restrict Access to Kernel Message Buffer
+  fail    low     sysctl_kernel_perf_event_paranoid  -- Disallow kernel profiling by unprivileged users
+  fail    unknown sysctl_net_ipv4_conf_all_log_martians  -- Enable Kernel Parameter to Log Martian Packets on all IPv4 Interfaces
+  fail    unknown sysctl_net_ipv4_conf_default_log_martians  -- Enable Kernel Parameter to Log Martian Packets on all IPv4 Interfaces by Default
+  fail    unknown sysctl_net_ipv4_icmp_ignore_bogus_error_responses  -- Enable Kernel Parameter to Ignore Bogus ICMP Error Responses on IPv4 Interfaces

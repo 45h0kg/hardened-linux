@@ -1,0 +1,10 @@
+# init_on_alloc=1 init_on_free=1: zero every page and slab object when it is
+#   allocated and when it is freed. Kills a class of uninitialised-memory and
+#   use-after-free info leaks; costs a few percent on allocation-heavy work.
+# page_poison=1: poison freed pages and check on reuse (required by the
+#   STIG; largely redundant with init_on_free).
+# slab_nomerge: keep slab caches of the same size separate, so a heap
+#   overflow in one cache is harder to aim at objects of another type.
+# page_alloc.shuffle=1, randomize_kstack_offset=on: randomise free lists and
+#   the kernel stack offset on every system call.
+kargs = ["init_on_alloc=1", "init_on_free=1", "page_poison=1", "slab_nomerge", "page_alloc.shuffle=1", "randomize_kstack_offset=on"]

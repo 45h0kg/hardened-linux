@@ -38,7 +38,18 @@ RUN dnf -y install \
     && rm -rf /var/cache/dnf /var/lib/dnf /var/log/dnf* /var/log/hawkey.log
 
 # ---------------------------------------------------------------------------
-# 2. Apply the DISA STIG for RHEL 10 (SCAP Security Guide content for
+# 2. PAM: lock accounts after failed logins (settings in faillock.conf) and
+#    remember old passwords. This runs BEFORE the STIG step on purpose:
+#    `authselect select` regenerates every PAM file, so running it after
+#    oscap-im silently undid the STIG's PAM changes (no nullok, SHA-512
+#    with 100000 rounds) in an earlier build of this image.
+# ---------------------------------------------------------------------------
+RUN authselect select local with-faillock with-pwhistory --force \
+ && authselect apply-changes \
+ && authselect current
+
+# ---------------------------------------------------------------------------
+# 3. Apply the DISA STIG for RHEL 10 (SCAP Security Guide content for
 #    CentOS Stream 10) at build time with oscap-im. oscap-im evaluates the
 #    image, installs packages the profile requires, and runs the
 #    profile's remediation scripts. The tailoring file records the few
@@ -60,18 +71,24 @@ RUN touch /run/.containerenv \
  && dnf clean all && rm -rf /var/cache/dnf /var/lib/dnf /var/log/dnf* /var/log/hawkey.log /tmp/*
 
 # ---------------------------------------------------------------------------
-# 3. This image's own configuration, layered over the STIG result. Where a
+# 4. This image's own configuration, layered over the STIG result. Where a
 #    file here and the STIG remediation touch the same setting, this file
 #    wins, and the scan in tests/ shows the effect.
 # ---------------------------------------------------------------------------
 COPY rootfs/ /
+
+# The STIG remediation wrote one /etc/sysctl.d file per key; remove those
+# for keys that zz-hardening.conf sets, so each key has one source.
+RUN for k in $(sed -nE 's/^([a-z0-9_.]+) *=.*/\1/p' /etc/sysctl.d/zz-hardening.conf); do \
+        f="/etc/sysctl.d/$(echo "$k" | tr . _).conf"; [ -f "$f" ] && rm -v "$f"; \
+    done; true
 
 # Files copied from a build context get the builder's modes; set the ones
 # the consuming programs check.
 RUN chmod 0440 /etc/sudoers.d/00-hardening \
  && chmod 0600 /etc/ssh/sshd_config.d/00-hardening.conf \
                /etc/usbguard/usbguard-daemon.conf \
- && chmod 0640 /etc/audit/rules.d/*.rules \
+ && chmod 0600 /etc/audit/rules.d/*.rules \
  && chown root:fapolicyd /etc/fapolicyd/fapolicyd.conf \
  && chmod 0644 /etc/fapolicyd/fapolicyd.conf \
  && chmod 0644 /etc/pki/containers/hardened-linux.pub /etc/containers/policy.json \
@@ -79,7 +96,7 @@ RUN chmod 0440 /etc/sudoers.d/00-hardening \
  && visudo -c -q
 
 # ---------------------------------------------------------------------------
-# 4. SELinux: enforcing, targeted policy, confined users, locked booleans.
+# 5. SELinux: enforcing, targeted policy, confined users, locked booleans.
 #    - Administrators (members of wheel) log in as staff_u and reach
 #      sysadm_r only through sudo (see sudoers.d). Everyone else is user_u:
 #      no sudo, no setuid transitions, no network services.
@@ -108,22 +125,16 @@ RUN sed -i 's/^SELINUX=.*/SELINUX=enforcing/; s/^SELINUXTYPE=.*/SELINUXTYPE=targ
  && semanage login -l && semanage boolean -l -C
 
 # ---------------------------------------------------------------------------
-# 5. System-wide crypto policy FUTURE: TLS 1.2+ only, no SHA-1 signatures,
-#    RSA and DH keys of at least 3072 bits, 128-bit minimum symmetric
-#    strength. Applies to OpenSSL, GnuTLS, NSS, OpenSSH, libssh, Kerberos
-#    and Java at once. FIPS mode is discussed in docs/controls.md and is
-#    not used: CentOS Stream is not a FIPS-validated module.
+# 6. System-wide crypto policy FUTURE:INTERNET-COMPAT, one setting for
+#    OpenSSL, GnuTLS, NSS, OpenSSH, libssh, Kerberos and Java. FUTURE gives
+#    TLS 1.3 only, AES-256/ChaCha20 only, no SHA-1, and prefers post-quantum
+#    hybrid key exchange. The INTERNET-COMPAT module (rootfs/etc/crypto-
+#    policies/policies/modules) adds classical ECDHE after the hybrids and
+#    accepts RSA-2048 certificates; pure FUTURE could not reach quay.io or
+#    most NTS servers. FIPS mode is discussed in docs/controls.md and is not
+#    used: CentOS Stream is not a FIPS-validated module.
 # ---------------------------------------------------------------------------
-RUN update-crypto-policies --no-reload --set FUTURE && update-crypto-policies --show
-
-# ---------------------------------------------------------------------------
-# 6. PAM: lock accounts after failed logins (faillock.conf) and remember
-#    old passwords. Password hashing (SHA-512, 100000 rounds) and the
-#    umask in login.defs come from the STIG remediation above.
-# ---------------------------------------------------------------------------
-RUN authselect select local with-faillock with-pwhistory --force \
- && authselect apply-changes \
- && authselect current
+RUN update-crypto-policies --no-reload --set FUTURE:INTERNET-COMPAT && update-crypto-policies --show
 
 # ---------------------------------------------------------------------------
 # 7. Host firewall: the default zone is "drop" (unsolicited inbound packets

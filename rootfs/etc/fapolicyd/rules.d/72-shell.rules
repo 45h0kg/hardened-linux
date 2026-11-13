@@ -1,0 +1,7 @@
+# Replaces the stock 72-shell.rules, which allows every shell script:
+#   allow perm=any all : ftype=text/x-shellscript
+# Here only trusted shell scripts (from an RPM, or listed in
+# /etc/fapolicyd/trust.d) may be opened or executed; any other is denied
+# and audited.
+allow perm=any all : ftype=text/x-shellscript trust=1
+deny_audit perm=any all : ftype=text/x-shellscript

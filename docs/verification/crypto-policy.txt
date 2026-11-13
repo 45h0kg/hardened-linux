@@ -1,0 +1,33 @@
+image policy: FUTURE:INTERNET-COMPAT
+
+== DEFAULT
+  quay.io:443                    TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256    ECDHE X25519, 253 bits       OK
+  github.com:443                 TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256    ECDHE X25519, 253 bits       OK
+  mirror.stream.centos.org:443   TLSv1.3, Cipher is TLS_AES_128_GCM_SHA256    group X25519MLKEM768         OK
+  www.example.com:443            TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    group X25519MLKEM768         OK
+  time.cloudflare.com:4460       TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE X25519, 253 bits       OK
+  nts.netnod.se:4460             TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE X25519, 253 bits       OK
+  ptbtime1.ptb.de:4460           TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE X25519, 253 bits       OK
+  ptbtime2.ptb.de:4460           TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE X25519, 253 bits       OK
+
+== FUTURE
+  quay.io:443                    (NONE), Cipher is (NONE)                     group <NULL>                 OK
+  github.com:443                 (NONE), Cipher is (NONE)                     group <NULL>                 OK
+  mirror.stream.centos.org:443   TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    group X25519MLKEM768         verify error:num=66:EE certificate key too weak
+  www.example.com:443            TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    group X25519MLKEM768         OK
+  time.cloudflare.com:4460       (NONE), Cipher is (NONE)                     group <NULL>                 OK
+  nts.netnod.se:4460             (NONE), Cipher is (NONE)                     group <NULL>                 OK
+  ptbtime1.ptb.de:4460           (NONE), Cipher is (NONE)                     group <NULL>                 OK
+  ptbtime2.ptb.de:4460           (NONE), Cipher is (NONE)                     group <NULL>                 OK
+
+== FUTURE:INTERNET-COMPAT
+  quay.io:443                    TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE ECDH, secp384r1, 384 bits OK
+  github.com:443                 TLSv1.3, Cipher is TLS_CHACHA20_POLY1305_SHA256 ECDHE X25519, 253 bits       OK
+  mirror.stream.centos.org:443   TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    group X25519MLKEM768         OK
+  www.example.com:443            TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    group X25519MLKEM768         OK
+  time.cloudflare.com:4460       TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE ECDH, secp384r1, 384 bits OK
+  nts.netnod.se:4460             TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE ECDH, secp384r1, 384 bits OK
+  ptbtime1.ptb.de:4460           TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE ECDH, secp384r1, 384 bits OK
+  ptbtime2.ptb.de:4460           TLSv1.3, Cipher is TLS_AES_256_GCM_SHA384    ECDHE ECDH, secp384r1, 384 bits OK
+
+FUTURE:INTERNET-COMPAT, TLS 1.3 suites: TLS_AES_256_GCM_SHA384:TLS_CHACHA20_POLY1305_SHA256

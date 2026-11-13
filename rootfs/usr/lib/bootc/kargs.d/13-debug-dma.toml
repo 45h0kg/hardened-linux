@@ -1,0 +1,7 @@
+# debugfs=off: no debugfs; it exposes kernel internals and has a long
+#   history of bugs. Breaks some tracing tools.
+# iommu.strict=1 iommu.passthrough=0: translate every device's DMA and flush
+#   the IOTLB synchronously, so a malicious or compromised device cannot read
+#   arbitrary memory. efi=disable_early_pci_dma closes the window before the
+#   IOMMU is set up. Vendor (x86) switches are in 20-x86_64.toml.
+kargs = ["debugfs=off", "iommu.strict=1", "iommu.passthrough=0", "efi=disable_early_pci_dma"]

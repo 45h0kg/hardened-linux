@@ -1,0 +1,5 @@
+# QEMU for the boot test. Fedora's build, because the qemu-kvm package in
+# RHEL and CentOS Stream is built for KVM only and has no TCG (software
+# emulation), which is all there is inside Docker Desktop on a Mac.
+FROM registry.fedoraproject.org/fedora:43
+RUN dnf -y install qemu-system-aarch64-core edk2-aarch64 qemu-img swtpm swtpm-tools && dnf clean all

@@ -1,17 +1,20 @@
 # A test-only image for the boot verification: the hardened image plus one
 # oneshot unit that prints a report of the live security state to the
-# serial console and powers the machine off. Nothing else changes; the
+# serial console, runs the STIG scan on the live system, and powers the
+# machine off. Nothing else changes; the
 # shipped image is hardened-linux:latest.
 FROM hardened-linux:latest
 COPY boot/boot-report.sh /usr/libexec/hardened-linux/boot-report.sh
+COPY tests/scap-scan.sh /usr/libexec/hardened-linux/scap-scan.sh
 COPY boot/boot-report.service /usr/lib/systemd/system/boot-report.service
 COPY boot/99-boottest-console.toml /usr/lib/bootc/kargs.d/99-boottest-console.toml
 # fapolicyd only runs files it trusts. The report script is not from an
 # RPM, so it is added to the file trust database by path, size and SHA-256
 # (the same format `fapolicyd-cli --file add` writes).
-RUN chmod 0755 /usr/libexec/hardened-linux/boot-report.sh \
- && f=/usr/libexec/hardened-linux/boot-report.sh \
+RUN chmod 0755 /usr/libexec/hardened-linux/*.sh \
  && mkdir -p /etc/fapolicyd/trust.d \
- && echo "$f $(stat -c %s $f) $(sha256sum $f | cut -d' ' -f1)" > /etc/fapolicyd/trust.d/boot-report \
+ && for f in /usr/libexec/hardened-linux/*.sh; do \
+        echo "$f $(stat -c %s $f) $(sha256sum $f | cut -d' ' -f1)"; \
+    done > /etc/fapolicyd/trust.d/boot-report \
  && systemctl enable boot-report.service \
  && bootc container lint

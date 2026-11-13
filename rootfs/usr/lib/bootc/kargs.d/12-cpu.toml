@@ -1,0 +1,4 @@
+# CPU side-channel mitigations on, and SMT off where SMT is a risk
+# (cross-thread leaks such as L1TF and MDS). nosmt halves logical CPUs on
+# x86 machines with hyperthreading.
+kargs = ["mitigations=auto,nosmt"]

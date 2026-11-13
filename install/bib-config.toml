@@ -1,0 +1,9 @@
+# bootc-image-builder configuration for a real (non-test) disk image:
+# one administrator in wheel, SSH key only. bootc-image-builder disk images
+# (qcow2, raw, ami...) are NOT encrypted; use `bootc install to-disk` (which
+# honours block = ["tpm2-luks"] in /usr/lib/bootc/install/50-hardening.toml)
+# or the kickstart in this directory for encrypted installs.
+[[customizations.user]]
+name = "CHANGE-ME-admin"
+key = "ssh-ed25519 AAAA...CHANGE-ME"
+groups = ["wheel"]

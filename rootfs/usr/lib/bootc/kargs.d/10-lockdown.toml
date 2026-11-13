@@ -1,0 +1,17 @@
+# Kernel arguments, applied by bootc at install and on every upgrade: bootc
+# merges every /usr/lib/bootc/kargs.d/*.toml into the boot entry, so the
+# arguments travel with the image. Each array is kept on one line because
+# SCAP Security Guide's checks match the whole `kargs = [...]` on a line.
+#
+# lockdown=confidentiality: root can no longer modify the running kernel
+#   (/dev/mem, /dev/port, unsigned kexec, MSR writes, ACPI table overrides)
+#   nor read kernel memory (/proc/kcore, bpf_probe_read_kernel, kprobes
+#   reading arbitrary memory, hibernation images).
+# module.sig_enforce=1: refuse kernel modules not signed by a key in the
+#   kernel's keyrings. Out-of-tree drivers stop working.
+# lsm=...: the LSMs, stated explicitly so a changed kernel default cannot
+#   silently drop one. This is the CentOS Stream 10 kernel's own CONFIG_LSM
+#   list: lockdown (needed for lockdown=), yama (ptrace scope), integrity
+#   (IMA/EVM), selinux, bpf (used by systemd's RestrictFileSystems=) and
+#   landlock (unprivileged self-sandboxing).
+kargs = ["lockdown=confidentiality", "module.sig_enforce=1", "lsm=lockdown,yama,integrity,selinux,bpf,landlock"]

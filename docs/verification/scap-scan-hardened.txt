@@ -1,0 +1,59 @@
+mode: bootc
+scanner: openscap-scanner-1.4.6-1.el10.aarch64 / scap-security-guide-0.1.82-1.el10.noarch
+profile: xccdf_org.ssgproject.content_profile_stig_hardened_linux (tailoring: tailoring.xml)
+oscap exit code: 2 (0 = all pass, 2 = at least one rule failed)
+results: fail 50, notapplicable 75, notchecked 7, notselected 601, pass 340
+pass rate of evaluated rules: 340/390 = 87.2%
+XCCDF default score: 72.83 / 100
+
+rules not passing (result, severity, rule id, title):
+  fail    high    ensure_redhat_gpgkey_installed  -- Ensure Red Hat GPG Key Installed
+  fail    high    grub2_admin_username  -- Set the Boot Loader Admin Username to a Non-Default Value
+  fail    high    harden_sshd_ciphers_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140 Validated Ciphers: openssh.config
+  fail    high    installed_OS_is_vendor_supported  -- The Installed Operating System Is Vendor Supported
+  fail    medium  account_password_selinux_faillock_dir  -- An SELinux Context must be configured for the pam_faillock.so records directory
+  fail    medium  accounts_authorized_local_users  -- Only Authorized Local User Accounts Exist on Operating System
+  fail    medium  accounts_passwords_pam_faillock_dir  -- Lock Accounts Must Persist
+  fail    medium  aide_build_database  -- Build and Test AIDE Database
+  fail    medium  banner_etc_issue  -- Modify the System Login Banner
+  fail    medium  directory_permissions_var_log_audit  -- System Audit Logs Must Have Mode 0750 or Less Permissive
+  fail    medium  fapolicy_default_deny  -- Configure Fapolicy Module to Employ a Deny-all, Permit-by-exception Policy to Allow the Execution of Authorized Software Programs.
+  fail    medium  file_permissions_sshd_config_not_modified  -- Verify Permissions on SSH Server Configuration Files Are Not Modified
+  fail    medium  grub2_init_on_free  -- The system must booted with init_on_free=1
+  fail    medium  grub2_page_poison_argument  -- Enable page allocator poisoning
+  fail    medium  harden_sshd_ciphers_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated Ciphers: opensshserver.config
+  fail    medium  harden_sshd_macs_openssh_conf_crypto_policy  -- Configure SSH Client to Use FIPS 140-2 Validated MACs: openssh.config
+  fail    medium  harden_sshd_macs_opensshserver_conf_crypto_policy  -- Configure SSH Server to Use FIPS 140-2 Validated MACs: opensshserver.config
+  fail    medium  network_configure_name_resolution  -- Configure Multiple DNS Servers in /etc/resolv.conf
+  fail    medium  service_auditd_enabled  -- Enable auditd Service
+  fail    medium  service_chronyd_enabled  -- The Chronyd service is enabled
+  fail    medium  service_fapolicyd_enabled  -- Enable the File Access Policy Service
+  fail    medium  service_firewalld_enabled  -- Verify firewalld Enabled
+  fail    medium  service_rsyslog_enabled  -- Enable rsyslog Service
+  fail    medium  service_sshd_enabled  -- Enable the OpenSSH Service
+  fail    medium  service_systemd-journald_enabled  -- Enable systemd-journald Service
+  fail    medium  service_usbguard_enabled  -- Enable the USBGuard Service
+  fail    medium  socket_pcscd_enabled  -- Enable the pcscd Socket
+  fail    medium  sssd_enable_certmap  -- Enable Certmap in SSSD
+  fail    medium  sudo_require_reauthentication  -- Require Re-Authentication When Using the sudo Command
+  fail    medium  sysctl_kernel_core_pattern  -- Disable storing core dumps
+  fail    medium  sysctl_kernel_kexec_load_disabled  -- Disable Kernel Image Loading
+  fail    medium  sysctl_kernel_kptr_restrict  -- Restrict Exposed Kernel Pointer Addresses Access
+  fail    medium  sysctl_kernel_yama_ptrace_scope  -- Restrict usage of ptrace to descendant processes
+  fail    medium  sysctl_net_core_bpf_jit_harden  -- Harden the operation of the BPF just-in-time compiler
+  fail    medium  sysctl_net_ipv4_conf_all_forwarding  -- Disable Kernel Parameter for IPv4 Forwarding on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_all_rp_filter  -- Enable Kernel Parameter to Use Reverse Path Filtering on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_all_send_redirects  -- Disable Kernel Parameter for Sending ICMP Redirects on all IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_default_accept_redirects  -- Disable Kernel Parameter for Accepting ICMP Redirects by Default on IPv4 Interfaces
+  fail    medium  sysctl_net_ipv4_conf_default_accept_source_route  -- Disable Kernel Parameter for Accepting Source-Routed Packets on IPv4 Interfaces by Default
+  fail    medium  sysctl_net_ipv4_conf_default_rp_filter  -- Enable Kernel Parameter to Use Reverse Path Filtering on all IPv4 Interfaces by Default
+  fail    medium  sysctl_net_ipv4_conf_default_send_redirects  -- Disable Kernel Parameter for Sending ICMP Redirects on all IPv4 Interfaces by Default
+  fail    medium  sysctl_net_ipv6_conf_all_accept_ra  -- Configure Accepting Router Advertisements on All IPv6 Interfaces
+  fail    medium  sysctl_net_ipv6_conf_all_accept_redirects  -- Disable Accepting ICMP Redirects for All IPv6 Interfaces
+  fail    medium  sysctl_net_ipv6_conf_default_accept_ra  -- Disable Accepting Router Advertisements on all IPv6 Interfaces by Default
+  fail    medium  sysctl_net_ipv6_conf_default_accept_redirects  -- Disable Kernel Parameter for Accepting ICMP Redirects by Default on IPv6 Interfaces
+  fail    low     grub2_audit_argument  -- Enable Auditing for Processes Which Start Prior to the Audit Daemon
+  fail    low     grub2_audit_backlog_limit_argument  -- Extend Audit Backlog Limit for the Audit Daemon
+  fail    low     grub2_pti_argument  -- Enable Kernel Page-Table Isolation (KPTI)
+  fail    unknown sysctl_net_ipv4_conf_all_log_martians  -- Enable Kernel Parameter to Log Martian Packets on all IPv4 Interfaces
+  fail    unknown sysctl_net_ipv4_conf_default_log_martians  -- Enable Kernel Parameter to Log Martian Packets on all IPv4 Interfaces by Default

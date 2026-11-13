@@ -1,0 +1,3 @@
+# Do not credit the CPU's RDRAND or the bootloader's seed alone as entropy;
+# mix them with other sources.
+kargs = ["random.trust_cpu=off", "random.trust_bootloader=off"]

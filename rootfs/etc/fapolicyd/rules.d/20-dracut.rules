@@ -1,0 +1,6 @@
+# Replaces the stock 20-dracut.rules, which contains
+#   allow perm=any uid=0 : dir=/var/tmp/
+# so that dracut can build an initramfs on the host. On an image-mode
+# system the initramfs is built into the image and dracut never runs on
+# the machine, and that rule let root run any binary dropped in /var/tmp
+# (found by the boot test). Intentionally empty.
