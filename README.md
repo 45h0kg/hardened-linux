@@ -144,8 +144,12 @@ Full outputs are in `docs/verification/`.
   STIG's placeholder `logcollector` log host; an nftables/libnftnl mismatch
   that left firewalld "active" with no rules loaded; the faillock tally on
   a tmpfs; a duplicated sudo setting.
-- **Open**: `bootc status` fails from a system service under SELinux
-  (`execve: Permission denied`); not yet tested from an administrator login.
+- **Worked around**: `bootc status` failed from a system service under
+  SELinux (`execve: Permission denied`): a shell wrapper leaves bootc
+  outside `install_t`. The image carries the policy module from
+  [bootc PR #2366](https://github.com/bootc-dev/bootc/pull/2366) until
+  bootc or selinux-policy ships it; boot 4 verifies the fix. Not yet tested
+  from an administrator login.
 - **Not verified**: TPM2-bound LUKS2, Secure Boot, measured boot, signed
   updates end to end, USBGuard with real devices, packets dropped from
   outside, remote TLS log forwarding, the kickstart, x86-only kernel

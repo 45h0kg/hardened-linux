@@ -5,8 +5,18 @@
 # Every control is either a file under rootfs/ (copied as-is) or a step
 # below. docs/controls.md explains each one: the attack, the cost.
 #
-# Build:   docker build --platform linux/arm64 -t hardened-linux:latest .
+# Build:   docker build --platform linux/arm64 -f Containerfile -t hardened-linux:latest .
 #          (or linux/amd64; nothing here is architecture-specific)
+
+# Build stage: compile the local SELinux modules in selinux/*.te, so the
+# shipped image does not carry the policy compiler (see step 5b).
+FROM quay.io/centos-bootc/centos-bootc:stream10 AS selinux-modules
+COPY selinux/ /src/
+RUN dnf -y install checkpolicy policycoreutils \
+ && cd /src \
+ && for te in *.te; do m=${te%.te}; \
+        checkmodule -M -m -o "$m.mod" "$te" && semodule_package -o "$m.pp" -m "$m.mod"; \
+    done
 
 FROM quay.io/centos-bootc/centos-bootc:stream10
 
@@ -139,6 +149,23 @@ RUN sed -i 's/^SELINUX=.*/SELINUX=enforcing/; s/^SELINUXTYPE=.*/SELINUXTYPE=targ
       'boolean -m --on secure_mode_policyload' \
     | semanage import \
  && semanage login -l && semanage boolean -l -C
+
+# ---------------------------------------------------------------------------
+# 5b. Temporary SELinux module from bootc PR #2366 (selinux/bootc_pr2366.te).
+#     A service that runs bootc through a shell wrapper stays in
+#     unconfined_service_t or initrc_t instead of moving to install_t, and
+#     `bootc status` then fails with "Ensuring selinux install_t type:
+#     execve: Permission denied" (docs/verification/boot-report-3.txt).
+#     The module adds those domain transitions. secure_mode_policyload
+#     only blocks loading policy at runtime; this is installed at build.
+#     The build fails unless sesearch finds both transitions.
+# ---------------------------------------------------------------------------
+COPY --from=selinux-modules /src/bootc_pr2366.pp /usr/share/hardened-linux/selinux/bootc_pr2366.pp
+RUN semodule -i /usr/share/hardened-linux/selinux/bootc_pr2366.pp \
+ && semodule -l | grep -qx bootc_pr2366 \
+ && for s in unconfined_service_t initrc_t; do \
+        sesearch -T -s "$s" -t install_exec_t -c process | tee /dev/stderr | grep -q 'install_t;' ; \
+    done
 
 # ---------------------------------------------------------------------------
 # 6. System-wide crypto policy FUTURE:INTERNET-COMPAT, one setting for

@@ -1,0 +1,33 @@
+# Temporary: the SELinux module from bootc-dev/bootc PR #2366,
+# contrib/selinux/bootc.te at commit a87253a8cf9022ab0ee7cd53a2299ce703c3d7e8.
+# Rules unchanged; only the module name differs ("bootc" upstream), so it
+# cannot collide with a module a future bootc RPM ships. Remove this file
+# and step 5b of the Containerfile once bootc or selinux-policy carries
+# the transitions.
+#   https://github.com/bootc-dev/bootc/pull/2366
+#   https://github.com/bootc-dev/bootc/issues/2186
+module bootc_pr2366 1.0;
+
+require {
+    type install_t;
+    type install_exec_t;
+    type initrc_t;
+    type unconfined_service_t;
+    class process { transition sigchld };
+}
+
+# When systemd runs a wrapper script/service (rather than bootc directly),
+# the wrapper process runs as initrc_t or unconfined_service_t.  Without
+# these rules, executing an install_exec_t binary (bootc, ostree) from
+# the wrapper does NOT transition to install_t, so the process lacks the
+# mac_admin capability needed for cross-version OS updates.
+#
+# See https://redhat.atlassian.net/browse/RHEL-117256
+
+type_transition initrc_t install_exec_t : process install_t;
+allow initrc_t install_t : process transition;
+allow install_t initrc_t : process sigchld;
+
+type_transition unconfined_service_t install_exec_t : process install_t;
+allow unconfined_service_t install_t : process transition;
+allow install_t unconfined_service_t : process sigchld;

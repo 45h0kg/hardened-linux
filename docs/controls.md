@@ -31,8 +31,15 @@ how far it was verified.
   superuser/password, multiple DNS servers, SSSD certmap, site list of
   authorised accounts, remote log host), and `service_fapolicyd_enabled`
   only because fapolicyd is stopped for the scan.
-- Open: `bootc status` from the report service fails with
-  `Ensuring selinux install_t type: execve: Permission denied`.
+- Boot 3 open item: `bootc status` from the report service failed with
+  `Ensuring selinux install_t type: execve: Permission denied`. The report
+  script runs as `unconfined_service_t`, which has no transition to
+  `install_t` for `install_exec_t` binaries, and bootc's fallback re-exec
+  from `/tmp` fails because `/tmp` is noexec. Tracked upstream in
+  bootc-dev/bootc#2186; fixed by the module from bootc-dev/bootc#2366.
+- Boot 4 (boot 3 image plus that module, step 5b): `bootc status` works
+  from the same unit, the `mac_admin` denial for `chcon` is gone, and the
+  live STIG scan is unchanged (378/393, the same failing rules).
 - Not observable in the emulator: TPM, Secure Boot, LUKS (bootc-image-builder
   disks are not encrypted).
 
